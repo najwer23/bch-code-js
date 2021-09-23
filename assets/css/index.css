@@ -1,0 +1,17 @@
+*, *::before, *::after, ul, li, body, a {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style-type: none;
+}  
+
+body {
+    font-family: 'Muli', sans-serif;
+    font-weight: normal;
+    font-size: 1.2rem;
+}
+
+@media only screen and (max-width: 1400px) {
+
+}

@@ -1,0 +1,98 @@
+@font-face {
+  font-family: 'Muli';
+  font-style: extra-light;
+  font-weight: 200;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-ExtraLight.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: extra-light-italic;
+  font-weight: 250;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-ExtraLightItalic.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: light;
+  font-weight: 300;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-Light.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: light-italic;
+  font-weight: 350;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-LightItalic.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: regular;
+  font-weight: 500;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-Regular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: regular-italic;
+  font-weight: 550;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-Italic.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: semi-bold;
+  font-weight: 600;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-SemiBold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: semi-bold-italic;
+  font-weight: 650;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-SemiBoldItalic.ttf) format('truetype');
+}
+
+
+@font-face {
+  font-family: 'Muli';
+  font-style: bold;
+  font-weight: 700;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-Bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: bold-italic;
+  font-weight: 750;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-BoldItalic.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: extra-bold;
+  font-weight: 800;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-ExtraBold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: extra-bold-italic;
+  font-weight: 850;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-ExtraBoldItalic.ttf) format('truetype');
+} 
+
+@font-face {
+  font-family: 'Muli';
+  font-style: bold-black;
+  font-weight: 900;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-Black.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: bold-black-italic;
+  font-weight: 950;
+  src: local('Muli'), local('Muli'), url(../fonts/muli/Muli-BlackItalic.ttf) format('truetype');
+}
