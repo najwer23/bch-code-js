@@ -12,6 +12,27 @@ class BCH {
         this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
         this.controlPart = this.primitivePolynomialPeroid - this.msg.length
         this.alfas = this.getElementsOfField()
+        this.alfasRoots = this.getRootsOfMinimalPoly()
+    }
+
+    makeTranspose(arr) {
+        return arr[0].map((x,i) => arr.map(x => x[i]));
+    }
+
+    getRootsOfMinimalPoly() {
+        let alfasRoots = [];
+
+        for (let i=1; i<this.primitivePolynomialPeroid/2; i=i+2) {
+            let j=0;
+            let alfaRootsOne = [];
+            while(j<this.galoisPower) {
+                alfaRootsOne.push((i*(this.galoisBase**(j))) % (this.primitivePolynomialPeroid))
+                j++;
+            }
+            alfasRoots.push([...new Set(alfaRootsOne)])
+        }
+
+        return alfasRoots
     }
 
     getElementsOfField() {
