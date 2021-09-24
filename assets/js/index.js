@@ -15,7 +15,7 @@ class BCH {
     }
 
     getElementsOfField() {
-        let alfas = ["0".padStart(this.galoisPower, "0")];
+        let alfas = [];
         let cycle = this.cycleOfField + this.cycleOfField
 
         for (let i=0; i<this.primitivePolynomialPeroid; i++) {
