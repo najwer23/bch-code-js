@@ -19,6 +19,30 @@ class BCH {
         return arr[0].map((x,i) => arr.map(x => x[i]));
     }
 
+    makeGfLineq() {
+        let nPoly = 3;
+        
+        let degreePoly = this.alfasRoots[nPoly].length
+        let B = [(this.alfasRoots[nPoly][0])*degreePoly % this.primitivePolynomialPeroid ]
+        let A = [];
+
+        for (let i=degreePoly-1; i>0; i--) {
+            A.push((this.alfasRoots[nPoly][0]*i) % this.primitivePolynomialPeroid)
+        }
+        A.push(0) // wektor [1,0,...]
+
+        A = A.map(x=>this.alfas[x].split(""))
+        B = B.map(x=>this.alfas[x].split(""))
+        
+        A = this.makeTranspose(A)
+        B = this.makeTranspose(B)
+        
+        console.log(A)
+        console.log(B)
+        
+        return 0
+    }
+
     getRootsOfMinimalPoly() {
         let alfasRoots = [];
 
@@ -100,5 +124,6 @@ window.onload = () => {
 
     let bch = new BCH(objBCH)
     console.log(bch)
+    console.log(bch.makeGfLineq())
 }
 
