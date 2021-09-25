@@ -197,6 +197,36 @@ class BCH {
         return true
     }
 
+    div2Polynomials(a,b) {
+        b = b.padEnd(a.length,"0")
+        copyb = b;
+        let isDive = true;
+        let i = 0;
+        let r = [];
+
+        while (isDive) {
+            b = copyb;
+            let shift = a.lastIndexOf('1') - b.lastIndexOf('1')
+            
+            if (shift>=0) {
+                b = b.split("")
+                for (let i=0; i<shift; i++)
+                    b.unshift(b.pop())
+                b = b.join("")
+                r.push(1)
+                a = this.add2Polynomials(a,b)
+            }
+            
+            if (shift < 0)  
+                isDive = false;
+            i++
+        }
+
+        console.log(r)
+        console.log("A--" + a)
+        console.log("B--" + b) 
+    }
+
     mul2Polynomials(a,b) {
         console.log("halo")
 
@@ -250,7 +280,8 @@ window.onload = () => {
     }
 
     let bch = new BCH(objBCH)
-    console.log(bch.mul2Polynomials("1101", "11"))
+    // console.log(bch.mul2Polynomials("1101", "11"))
+    console.log(bch.div2Polynomials("0001", "111"))
     // bch.add2Polynomials("0111111", "110010000001")
     // console.log(bch)
 }
