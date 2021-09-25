@@ -103,6 +103,13 @@ class BCH {
             for(let j=i+1; j<minPolynomials.length; j++) {
                 if (temp.join("") == minPolynomials[j].join("")) {
                     minPolynomials.splice(j,1); j--;
+                    continue
+                }
+
+                // usuniecie wilomianow duplikatow, ktore sa samoodwrotne
+                if (temp.reverse().join("") == minPolynomials[j].join("")) {
+                    minPolynomials.splice(j,1); j--;
+                    continue
                 }
             }
         }
