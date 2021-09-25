@@ -196,6 +196,22 @@ class BCH {
         }      
         return true
     }
+
+    mul2Polynomials(a,b) {
+        console.log("halo")
+    }
+
+    add2Polynomials(a,b) {
+        r = a.length >= b.length ? a : b;
+        a = a.padEnd(r.length,'0')
+        b = b.padEnd(r.length,'0')
+        r = r.split("");
+        for (let i=0; i<r.length; i++) {
+            r[i] = (a[i] == b[i]) ? '0' : '1'
+        }
+
+        return r;
+    }
 };
 
 
@@ -211,7 +227,8 @@ window.onload = () => {
     }
 
     let bch = new BCH(objBCH)
-    // bch.mul2
+    // bch.mul2Polynomials("10011", "1111")
+    bch.add2Polynomials("0111111", "110010000001")
     // console.log(bch)
 }
 
