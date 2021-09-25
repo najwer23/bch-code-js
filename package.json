@@ -1,9 +1,9 @@
 {
-  "name": "html-start-template",
+  "name": "bch",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/najwer23/html-start-template.git",
-  "author": "Travis CI <najwer23@gmail.com>",
+  "author": "Mariusz Najwer <najwer23@gmail.com>",
   "license": "MIT",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
