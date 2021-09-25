@@ -222,9 +222,10 @@ class BCH {
             i++
         }
 
-        console.log(r)
-        console.log("A--" + a)
-        console.log("B--" + b) 
+        return {
+            "result": r.reverse().join(""),
+            "remainder": a
+        }
     }
 
     mul2Polynomials(a,b) {
@@ -275,13 +276,14 @@ class BCH {
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "11", // kodowana wiadomosc
+        msg: "1100001", // kodowana wiadomosc
         howManyErrors: 2, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
+    console.log(bch)
     // console.log(bch.mul2Polynomials("1101", "11"))
-    console.log(bch.div2Polynomials("0001", "111"))
+    //console.log(bch.div2Polynomials("0001011", "1101"))
     // bch.add2Polynomials("0111111", "110010000001")
     // console.log(bch)
 }
