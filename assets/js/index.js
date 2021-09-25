@@ -99,14 +99,24 @@ class BCH {
             minimalPolys.push(minimalPoly)
         }
 
+        for(let i=0; i<minimalPolys.length; i++) {
+            let temp = minimalPolys[i];
+            for(let j=i+1; j<minimalPolys.length; j++) {
+                if (temp.join("") == minimalPolys[j].join("")) {
+                    minimalPolys.splice(j,1);
+                    j--;
+                    continue;
+                }
+            }
+        }
 
-        return minimalPolys
+        return minimalPolys.map(x=>x.join(""))
     }
 
     getRootsOfMinimalPoly() {
         let alfasRoots = [];
 
-        for (let i=1; i<this.primitivePolynomialPeroid/2; i=i+2) {
+        for (let i=1; i<this.primitivePolynomialPeroid; i++) {
             let j=0;
             let alfaRootsOne = [];
             while(j<this.galoisPower) {
@@ -163,6 +173,8 @@ class BCH {
 
     checkIfPolynomialIsPrimitive(primitivePolyTest) {   
         // primitivePolyTest = "1000100001" 
+        // primitivePolyTest = "100011101".split("").reverse().join("") 
+        
         primitivePolyTest = primitivePolyTest.slice(0,this.galoisPower-1).split("")
         let indexs = primitivePolyTest.map((x,i)=>x==1?i:-1).filter(x=>x!==-1)
 
@@ -176,7 +188,14 @@ class BCH {
         }
 
         this.cycleOfField = arr.slice(0,this.primitivePolynomialPeroid).join("")
-        return (arr.splice(0,this.primitivePolynomialPeroid).join("") == arr.splice(0,this.primitivePolynomialPeroid).join(""))
+        let roots = this.getElementsOfField()
+
+        for (let i=0; i<roots.length; i++) {
+            if ((roots[2] == roots[i]) && (i != 2))
+                return false
+        }
+                
+        return true
     }
 };
 
