@@ -146,36 +146,36 @@ class BCH {
 
     getPrimitivePolynomial() {
         //poczatkowy wielomian 
-        let primitivePolyTest = "1"+"1".padStart(this.galoisPower-1, "0")
+        let primitivePolynomialTest = "1"+"1".padStart(this.galoisPower-1, "0")
 
         //szukaj wielomianu prymitywnego tak dlugo az znajdziesz
         for (let i=0; ;i++) {
-            if (this.checkIfPolynomialIsPrimitive(primitivePolyTest)) {
+            if (this.checkIfPolynomialIsPrimitive(primitivePolynomialTest)) {
                 break;
             }
 
-            primitivePolyTest = primitivePolyTest.split("").map(x=>+x);
-            primitivePolyTest[0] += 1; 
+            primitivePolynomialTest = primitivePolynomialTest.split("").map(x=>+x);
+            primitivePolynomialTest[0] += 1; 
 
             // inkrementowanie po stopniach wielomianu, jednak dalej w obrebie ciala
-            for (let j=0; j<primitivePolyTest.length; j++) {
-                if (primitivePolyTest[j]>=this.galoisBase) {
-                    let r = this.customMod(primitivePolyTest[j], this.galoisBase)
-                    primitivePolyTest[j+1] += 1
-                    primitivePolyTest[j] = r
+            for (let j=0; j<primitivePolynomialTest.length; j++) {
+                if (primitivePolynomialTest[j]>=this.galoisBase) {
+                    let r = this.customMod(primitivePolynomialTest[j], this.galoisBase)
+                    primitivePolynomialTest[j+1] += 1
+                    primitivePolynomialTest[j] = r
                 }
             }
-            primitivePolyTest = [...primitivePolyTest].join("")
+            primitivePolynomialTest = [...primitivePolynomialTest].join("")
         }
-        return primitivePolyTest
+        return primitivePolynomialTest
     }
 
-    checkIfPolynomialIsPrimitive(primitivePolyTest) {   
+    checkIfPolynomialIsPrimitive(primitivePolynomialTest) {   
         //wytnij najwyzsza potege wielominau
-        primitivePolyTest = primitivePolyTest.slice(0,this.galoisPower-1).split("")
+        primitivePolynomialTest = primitivePolynomialTest.slice(0,this.galoisPower-1).split("")
         
         //pseudo generator losowy elementow ciala
-        let indexs = primitivePolyTest.map((x,i)=>x==1?i:-1).filter(x=>x!==-1)
+        let indexs = primitivePolynomialTest.map((x,i)=>x==1?i:-1).filter(x=>x!==-1)
         let arr = "1".padEnd(this.galoisPower,"0").split("");
         for (let i=0; i<this.codeLength; i++) {
             let suma = 0;
@@ -199,14 +199,19 @@ class BCH {
 };
 
 
+
+
+
+
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
         msg: "11", // kodowana wiadomosc
-        howManyErrors: 1, // liczby mozliwych bledow do skorygowania 
+        howManyErrors: 2, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
-    console.log(bch)
+    // bch.mul2
+    // console.log(bch)
 }
 
