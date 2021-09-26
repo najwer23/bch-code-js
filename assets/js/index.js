@@ -15,11 +15,19 @@ class BCH {
         this.polynomialGeneratingCode = this.getPolynomialGeneratingCode()
         this.controlPart = this.polynomialGeneratingCode.length
         this.msgLength = this.codeLength - this.controlPart // calkowita mozliwa wiadomosc
+        this.encodeMSG = this.encodeMsgBCH()
 
     }
 
+    encodeMsgBCH() {
+        //wielomian stopnia generujacego 
+        let X = "1".padStart(this.controlPart, "0")
+        let Y = this.mul2Polynomials(this.msg, X)
+        let Z = this.div2Polynomials(Y,this.polynomialGeneratingCode)
+        return this.add2Polynomials(Y,Z.remainder)
+    }
+
     getPolynomialGeneratingCode() {
-        console.log(this.minimalPolynomials)
         let G = this.minimalPolynomials[0]
         for (let i=1; i<this.howManyErrors; i++) {
             G = this.mul2Polynomials(G,this.minimalPolynomials[i])
@@ -230,9 +238,11 @@ class BCH {
             i++
         }
 
+        r = r.reverse().join("")
+
         return {
-            "result": r.reverse().join(""),
-            "remainder": a
+            "result": r.slice(0,r.lastIndexOf("1")+1),
+            "remainder": a.slice(0,a.lastIndexOf("1")+1)
         }
     }
 
@@ -282,7 +292,7 @@ class BCH {
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "11001", // kodowana wiadomosc
+        msg: "1011", // kodowana wiadomosc
         howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
