@@ -16,6 +16,7 @@ class BCH {
         this.msgLength = this.codeLength - this.controlPart // calkowita mozliwa wiadomosc
         this.msgPaddingAtStart = this.msgLength - args.msg.length
         this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
+        this.msgWithoutPadding = args.msg; // wiadomosc
         this.encodeMSG = this.encodeMsgBCH()
         this.decodeMSG = this.decodeMsgBCH()
 
@@ -31,6 +32,12 @@ class BCH {
 
     decodeMsgBCH() {
         let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
+        let syndrom = Cy.remainder
+
+        //brak bledu w wektorze kodowym
+        if (syndrom == 0) {
+            return this.encodeMSG.slice(this.encodeMSG.length-this.msgLength+this.msgPaddingAtStart,this.encodeMSG.length)
+        }
     }
 
     getPolynomialGeneratingCode() {
@@ -253,7 +260,7 @@ class BCH {
 
         return {
             "result": r.slice(0,r.lastIndexOf("1")+1),
-            "remainder": a.slice(0,a.lastIndexOf("1")+1)
+            "remainder": a.slice(0,a.lastIndexOf("1")+1) || 0
         }
     }
 
@@ -302,7 +309,7 @@ class BCH {
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "1010", // kodowana wiadomosc
+        msg: "11", // kodowana wiadomosc
         howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
