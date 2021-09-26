@@ -13,7 +13,7 @@ class BCH {
         this.minimalPolynomials = this.getMinimalPolynomials()
         this.polynomialGeneratingCode = this.getPolynomialGeneratingCode()
         this.controlPart = this.polynomialGeneratingCode.length
-        this.msgLength = this.codeLength - this.controlPart // calkowita mozliwa wiadomosc
+        this.msgLength = this.codeLength - this.controlPart + 1 // calkowita mozliwa wiadomosc
         this.msgPaddingAtStart = this.msgLength - args.msg.length
         this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
         this.msgWithoutPadding = args.msg; // wiadomosc
@@ -309,8 +309,8 @@ class BCH {
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "11", // kodowana wiadomosc
-        howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
+        msg: "111", // kodowana wiadomosc
+        howManyErrors: 2, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
