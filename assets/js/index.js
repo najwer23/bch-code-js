@@ -16,6 +16,7 @@ class BCH {
         this.controlPart = this.polynomialGeneratingCode.length
         this.msgLength = this.codeLength - this.controlPart // calkowita mozliwa wiadomosc
         this.encodeMSG = this.encodeMsgBCH()
+        this.decodeMSG = this.decodeMsgBCH()
 
     }
 
@@ -25,6 +26,10 @@ class BCH {
         let Y = this.mul2Polynomials(this.msg, X)
         let Z = this.div2Polynomials(Y,this.polynomialGeneratingCode)
         return this.add2Polynomials(Y,Z.remainder)
+    }
+
+    decodeMsgBCH() {
+        let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
     }
 
     getPolynomialGeneratingCode() {
@@ -213,32 +218,36 @@ class BCH {
         return true
     }
 
+    shiftStringRight(str, shift) {
+        str = str.split("")
+        for (let i=0; i<shift; i++) str.unshift(str.pop())
+        str = str.join("")
+        return str
+    }
+
+    getPolynomialDegreeDifference(str1, str2) {
+        return str1.lastIndexOf('1') - str2.lastIndexOf('1')
+    }
+
     div2Polynomials(a,b) {
         b = b.padEnd(a.length,"0")
-        copyb = b;
+        let copyb = b;
         let isDive = true;
-        let i = 0;
-        let r = [];
+        let polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
+        let r = Array(polynomialDegreeDifference+1).fill(0);
 
         while (isDive) {
             b = copyb;
-            let shift = a.lastIndexOf('1') - b.lastIndexOf('1')
-            
-            if (shift>=0) {
-                b = b.split("")
-                for (let i=0; i<shift; i++)
-                    b.unshift(b.pop())
-                b = b.join("")
-                r.push(1)
+            polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
+            if (polynomialDegreeDifference>0) {
+                b = this.shiftStringRight(b,polynomialDegreeDifference)
+                r[polynomialDegreeDifference]=1
                 a = this.add2Polynomials(a,b)
             }
-            
-            if (shift < 0)  
-                isDive = false;
-            i++
+            isDive = (polynomialDegreeDifference <= 0)
         }
 
-        r = r.reverse().join("")
+        r = r.join("")
 
         return {
             "result": r.slice(0,r.lastIndexOf("1")+1),
@@ -253,7 +262,6 @@ class BCH {
         let R = [];
 
         let k=0;
-        // 1101 11
         for (let i=0; i<a.length; i++) {
             r = "0".padEnd(a.length+b.length-1, '0').split("");
             for (let j=0; j<b.length; j++) {
@@ -292,15 +300,15 @@ class BCH {
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "1011", // kodowana wiadomosc
+        msg: "1111", // kodowana wiadomosc
         howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
     console.log(bch)
-    // console.log(bch.mul2Polynomials("1101", "11"))
-    //console.log(bch.div2Polynomials("0001011", "1101"))
-    // bch.add2Polynomials("0111111", "110010000001")
-    // console.log(bch)
+        // console.log("Mar")
+        // console.log(bch.div2Polynomials(bch.encodeMSG,bch.polynomialGeneratingCode))
+        // console.log(bch.mul2Polynomials("0001", "11101100101"))
+    // console.log(bch.add2Polynomials("001001101", "10111100010011"))
 }
 
