@@ -6,14 +6,25 @@ class BCH {
         this.galoisPower = args.codeLength.toString(2).length;
         this.codeLength = this.galoisBase ** this.galoisPower - 1;
         this.howManyErrors = args.howManyErrors; //zdolnosc korekcyjna
-        this.msgLength = this.getPossibleMsgLength(); // calkowita mozliwa wiadomosc
         this.cycleFromPseudoRandomGenerator = "";
         this.primitivePolynomial = this.getPrimitivePolynomial();
         this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
-        this.controlPart = this.codeLength - this.msg.length
         this.alfas = this.getElementsOfField()
         this.minimalPolynomialsRootsAsAlfa = this.getRootsOfMinimalPoly()
         this.minimalPolynomials = this.getMinimalPolynomials()
+        this.polynomialGeneratingCode = this.getPolynomialGeneratingCode()
+        this.controlPart = this.polynomialGeneratingCode.length
+        this.msgLength = this.codeLength - this.controlPart // calkowita mozliwa wiadomosc
+
+    }
+
+    getPolynomialGeneratingCode() {
+        console.log(this.minimalPolynomials)
+        let G = this.minimalPolynomials[0]
+        for (let i=1; i<this.howManyErrors; i++) {
+            G = this.mul2Polynomials(G,this.minimalPolynomials[i])
+        }
+        return G.slice(0,G.lastIndexOf("1")+1)
     }
 
     makeTranspose(arr) {
@@ -105,12 +116,6 @@ class BCH {
                     minPolynomials.splice(j,1); j--;
                     continue
                 }
-
-                // usuniecie wilomianow duplikatow, ktore sa samoodwrotne
-                if (temp.reverse().join("") == minPolynomials[j].join("")) {
-                    minPolynomials.splice(j,1); j--;
-                    continue
-                }
             }
         }
 
@@ -145,10 +150,6 @@ class BCH {
         alfas.push("0".padStart(this.galoisPower, "0"))
 
         return alfas
-    }
-
-    getPossibleMsgLength() {
-        return this.codeLength - this.galoisPower*this.howManyErrors;
     }
 
     getPrimitivePolynomial() {
@@ -236,8 +237,6 @@ class BCH {
     }
 
     mul2Polynomials(a,b) {
-        console.log("halo")
-
         a = a.split("")
         b = b.split("")
         let r;
@@ -283,8 +282,8 @@ class BCH {
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "1100001", // kodowana wiadomosc
-        howManyErrors: 2, // liczby mozliwych bledow do skorygowania 
+        msg: "11001", // kodowana wiadomosc
+        howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
