@@ -8,13 +8,14 @@ class BCH {
         this.howManyErrors = args.howManyErrors; //zdolnosc korekcyjna
         this.cycleFromPseudoRandomGenerator = "";
         this.primitivePolynomial = this.getPrimitivePolynomial();
-        this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
         this.alfas = this.getElementsOfField()
         this.minimalPolynomialsRootsAsAlfa = this.getRootsOfMinimalPoly()
         this.minimalPolynomials = this.getMinimalPolynomials()
         this.polynomialGeneratingCode = this.getPolynomialGeneratingCode()
         this.controlPart = this.polynomialGeneratingCode.length
         this.msgLength = this.codeLength - this.controlPart // calkowita mozliwa wiadomosc
+        this.msgPaddingAtStart = this.msgLength - args.msg.length
+        this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
         this.encodeMSG = this.encodeMsgBCH()
         this.decodeMSG = this.decodeMsgBCH()
 
@@ -220,7 +221,8 @@ class BCH {
 
     shiftStringRight(str, shift) {
         str = str.split("")
-        for (let i=0; i<shift; i++) str.unshift(str.pop())
+        for (let i=0; i<shift; i++) 
+            str.unshift(str.pop())
         str = str.join("")
         return str
     }
@@ -239,12 +241,12 @@ class BCH {
         while (isDive) {
             b = copyb;
             polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
-            if (polynomialDegreeDifference>0) {
+            if (polynomialDegreeDifference >= 0) {
                 b = this.shiftStringRight(b,polynomialDegreeDifference)
                 r[polynomialDegreeDifference]=1
                 a = this.add2Polynomials(a,b)
             }
-            isDive = (polynomialDegreeDifference <= 0)
+            isDive = !(polynomialDegreeDifference < 0)  
         }
 
         r = r.join("")
@@ -300,7 +302,7 @@ class BCH {
 window.onload = () => {   
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "1111", // kodowana wiadomosc
+        msg: "1010", // kodowana wiadomosc
         howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
