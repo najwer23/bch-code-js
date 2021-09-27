@@ -2,8 +2,6 @@ const cloneDeep = require('lodash.clonedeep')
 
 class BCH {
 
-    //1+((12+8)%15)*x+((9+16)%15)*x^2
-
     // wielomiany sa w postaci 1 + x + x^2 + x^3 ...
     constructor (args) {
         this.galoisBase = 2;
@@ -124,8 +122,8 @@ class BCH {
 
     decodeMsgBCH() {
         //test
-        let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
-        this.syndrom = "00100001" //Cy.remainder
+        let Cy = this.div2Polynomials("0011001010000111",this.polynomialGeneratingCode)
+        this.syndrom = Cy.remainder
 
         //brak bledu w wektorze kodowym
         if (this.syndrom == 0) {
@@ -133,11 +131,28 @@ class BCH {
         }
 
         let matrixOfSyndorms = this.createMatrixOfSyndroms(this.syndrom)
-        console.log(matrixOfSyndorms.map(x=>console.log("Macierz syndromow", x.map(y=>y.alfa))))
+        matrixOfSyndorms.map(x=>console.log("Macierz syndromow", x.map(y=>y.alfa)))
       
+        console.log("Lambda")
         let lambdaCoefficients = this.runGaussGFForPolynomial(matrixOfSyndorms)
-        console.log(lambdaCoefficients)
+        lambdaCoefficients.push({ poly: this.alfas[0], alfa: 0})
+        lambdaCoefficients.reverse();
 
+        //1+((12+8)%15)*x+((9+16)%15)*x^2
+        for (let i=0; i<=this.codeLength; i++) {
+            let p = "0"
+            for (let j=0; j<lambdaCoefficients.length; j++) {
+                let s = (lambdaCoefficients[j].alfa+(i*(j))) % 15
+                p = this.add2Polynomials(p,this.alfas[s])
+                //console.log(i,j,s, this.alfas[s], lambdaCoefficients[j].alfa)
+            }
+            if (p.lastIndexOf("1") < 0) {
+                console.log("Blad")
+                console.log(this.customMod(-1*i,this.codeLength))
+            }
+        }
+       
+        
     }
 
     operationOn2Alfas(a,b,operation) {
