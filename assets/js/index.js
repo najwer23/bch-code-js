@@ -35,21 +35,9 @@ class BCH {
         return this.add2Polynomials(Y,Z.remainder)
     }
 
-    decodeMsgBCH() {
-        //test
-        let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
-        this.syndrom = "00101001" //Cy.remainder
-
-        //brak bledu w wektorze kodowym
-        if (this.syndrom == 0) {
-            return this.encodeMSG.slice(this.encodeMSG.length-this.msgLength+this.msgPaddingAtStart,this.encodeMSG.length)
-        }
-
-        console.log("syndrom", this.syndrom) 
-        //stworz macierz syndromow
+    createMatrixOfSyndroms() {
         let s = this.syndrom.split("");
-
-        let arrS = []; // <--
+        let arrS = [];
         let arrSRow = []
         let arrSsingleSyndrom = []
 
@@ -65,9 +53,9 @@ class BCH {
                         arrSsingleSyndrom.push(S)
                     }
                 }
-                //dodaj wielomiany w syndromie
+
+                // superpozycja elemetow ciala - alfy i wilomian
                 arrSsingleSyndrom = arrSsingleSyndrom.reduce((a,b)=>a = this.add2Polynomials(a,b))
-                //przechowuj alfe z wielomianem
 
                 arrSsingleSyndrom = {
                     poly: arrSsingleSyndrom,
@@ -79,77 +67,105 @@ class BCH {
             arrS.push(arrSRow)
         }
 
-        arrS.map(x=>console.log("PRzed", x.map(y=>y.alfa)))
+        return arrS
+    }
 
-        
+    //gauss jordan elimination dla wyznacznika i rozwiazania ukladu rownan w ciele pod funkcje lambda
+    runGaussGFForPolynomial(matrixOfSyndorms) {
+        let resultOfDivAlfas;
+        let resultOfMulAlfas;
+        let c=0;
 
-
-
-
-        //macierz trojkatna gorna 
-        let arrSDet;
-        let m_ij;
-        let m_ij__a_jk;
-        let r_poly;
-        let r_alfa;
-        let t;
-        let arrSEqu;
-
-
-        for (t = this.howManyErrors+1; t>1; t--) { 
-            arrSDet = cloneDeep(arrS).slice(0, t-1).map(i => i.slice(0, t));
-            for (let j=0; j<t-1; j++) {
-                for (let i=j+1; i<t-1; i++) {
-
-                    r_alfa = this.divIfZeroAlfa(arrSDet[i][j].alfa, arrSDet[j][j].alfa, this.codeLength)
-                    m_ij = {
-                        poly: this.alfas[r_alfa],
-                        alfa: r_alfa
+        for (let t = this.howManyErrors+1; t>1; t--) { 
+            A = cloneDeep(matrixOfSyndorms).slice(0, t-1).map(i => i.slice(0, t));
+            c=0;
+            for (let i = 0; i < A.length; i++) {
+                if (A[i][i].alfa == this.codeLength) {
+                    c = 1;
+                    
+                    while ((i + c) < A.length && A[i + c][i].alfa == this.codeLength) { c++; }
+                    
+                    if ((i + c) == A.length) { break; }
+                    
+                    //pivot
+                    for (j = i, k = 0; k <= A.length; k++) {
+                        let temp = A[j][k];
+                        A[j][k] = A[j+c][k];
+                        A[j+c][k] = temp;
                     }
-    
-                    for (let k=j+1; k<t; k++) {
-                        r_alfa = this.mulIfZeroAlfa(m_ij.alfa,arrSDet[j][k].alfa,this.codeLength)
-                        m_ij__a_jk = {
-                            poly: this.alfas[r_alfa],
-                            alfa: r_alfa
-                        }
-                        r_poly = this.add2Polynomials(arrSDet[i][k].poly, m_ij__a_jk.poly)
-                        arrSDet[i][k] = {
-                            poly: r_poly,
-                            alfa: this.alfas.indexOf(r_poly)
+                }
+        
+                for (let j = 0; j < A.length; j++) { 
+                    if (i != j) {
+                        resultOfDivAlfas = this.operationOn2Alfas(A[j][i], A[i][i], "/") 
+                        for (let k = 0; k <= A.length; k++) {
+                            resultOfMulAlfas = this.operationOn2Alfas(resultOfDivAlfas,A[i][k], "*") 
+                            A[j][k] = this.operationOn2Alfas(A[j][k], resultOfMulAlfas, "+")
                         }
                     }
                 }
             }
 
+            //determinant(A)
             let det = "1";
             for (let i=0; i<t-1; i++) {
-                det = this.mul2Polynomials(det,arrSDet[i][i].poly)
+                det = this.mul2Polynomials(det,A[i][i].poly)
             }
 
             if(det.lastIndexOf("1")>0) {
-                console.log("t", t)
-                arrSEqu = cloneDeep(arrS).slice(0, t-1).map(i => i.slice(0, t))
-                break;
+                //lambdaCoefficients
+                for (let i=0; i<A.length; i++) {
+                    A[i][A.length] = this.operationOn2Alfas(A[i][A.length], A[i][i],"/")
+                }
+                return A.map(c => c[A.length])
+            }
+        }
+    }
+
+    decodeMsgBCH() {
+        //test
+        let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
+        this.syndrom = "00100001" //Cy.remainder
+
+        //brak bledu w wektorze kodowym
+        if (this.syndrom == 0) {
+            return this.encodeMSG.slice(this.encodeMSG.length-this.msgLength+this.msgPaddingAtStart,this.encodeMSG.length)
+        }
+
+        let matrixOfSyndorms = this.createMatrixOfSyndroms(this.syndrom)
+        console.log(matrixOfSyndorms.map(x=>console.log("Macierz syndromow", x.map(y=>y.alfa))))
+      
+        let lambdaCoefficients = this.runGaussGFForPolynomial(matrixOfSyndorms)
+        console.log(lambdaCoefficients)
+
+    }
+
+    operationOn2Alfas(a,b,operation) {
+        let n = this.codeLength;
+        let r_alfa;
+
+        if (operation == "+") {
+            let resultPoly = this.add2Polynomials(a.poly,b.poly)
+            return {
+                poly: resultPoly,
+                alfa: this.alfas.indexOf(resultPoly)
             }
         }
 
+        if (operation == "/") {
+            r_alfa = (a.alfa == n || b.alfa == n) ? n : this.customMod((a.alfa - b.alfa), n) 
+        }
 
+        if (operation == "*") {
+            r_alfa = (a.alfa == n || b.alfa == n) ? n : this.customMod((a.alfa + b.alfa), n) 
+        }
 
-
-        
-        //wyznacz wspolczyniki funkcji lokalizacji bledow
-        arrSEqu.map(x=>console.log("Po", x.map(y=>y.alfa)))
-
+        return {
+            poly: this.alfas[r_alfa],
+            alfa: r_alfa
+        }
     }
 
-    divIfZeroAlfa(a,b,n) {            
-        return (a == n || b == n) ? n : this.customMod((a - b), n) 
-    }
-
-    mulIfZeroAlfa(a,b,n) {            
-        return (a == n || b == n) ? n : this.customMod((a + b), n) 
-    }
 
     getPolynomialGeneratingCode() {
         let G = this.minimalPolynomials[0]
