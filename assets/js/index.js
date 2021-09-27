@@ -13,7 +13,7 @@ class BCH {
         this.minimalPolynomials = this.getMinimalPolynomials()
         this.polynomialGeneratingCode = this.getPolynomialGeneratingCode()
         this.controlPart = this.polynomialGeneratingCode.length
-        this.msgLength = this.codeLength - this.controlPart + 1 // calkowita mozliwa wiadomosc
+        this.msgLength = this.codeLength - this.controlPart + 2// calkowita mozliwa wiadomosc - stopien wielominau, jesli wielomian jest 8 stopnia to jest 9 bitow
         this.msgPaddingAtStart = this.msgLength - args.msg.length
         this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
         this.msgWithoutPadding = args.msg; // wiadomosc
@@ -175,7 +175,7 @@ class BCH {
 
     getPrimitivePolynomial() {
         //poczatkowy wielomian 
-        let primitivePolynomialTest = "1"+"1".padStart(this.galoisPower-1, "0")
+        let primitivePolynomialTest = "1"+"1".padStart(this.galoisPower, "0")
 
         //szukaj wielomianu prymitywnego tak dlugo az znajdziesz
         for (let i=0; ;i++) {
