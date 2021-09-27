@@ -1,5 +1,7 @@
 class BCH {
 
+    //1+((12+8)%15)*x+((9+16)%15)*x^2
+
     // wielomiany sa w postaci 1 + x + x^2 + x^3 ...
     constructor (args) {
         this.galoisBase = 2;
@@ -19,6 +21,7 @@ class BCH {
         this.msgWithoutPadding = args.msg; // wiadomosc
         this.encodeMSG = this.encodeMsgBCH()
         this.decodeMSG = this.decodeMsgBCH()
+        this.syndrom;
 
     }
 
@@ -31,13 +34,46 @@ class BCH {
     }
 
     decodeMsgBCH() {
+        //test
         let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
-        let syndrom = Cy.remainder
+        this.syndrom = "00100001" //Cy.remainder
 
         //brak bledu w wektorze kodowym
-        if (syndrom == 0) {
+        if (this.syndrom == 0) {
             return this.encodeMSG.slice(this.encodeMSG.length-this.msgLength+this.msgPaddingAtStart,this.encodeMSG.length)
         }
+
+        console.log("syndrom", this.syndrom) 
+        //stworz macierz syndromow
+        let s = this.syndrom.split("");
+        console.log("s", s)
+
+        let arrS = []; // <--
+        let arrSRow = []
+        let arrSsingleSyndrom = []
+
+        for (let i=0; i<this.howManyErrors; i++) {
+            arrSRow = [];
+            for(let j=0; j<this.howManyErrors + 1; j++) {
+                arrSsingleSyndrom = []
+                //przeksztalc syndrom na alfe, ale na wielomian
+                for (let k=0; k<s.length; k++) {
+                    if (s[k]=="1") {
+                        let S = (+(k)*(j+1+i)) % this.codeLength
+                        S = this.alfas[S]
+                        arrSsingleSyndrom.push(S)
+                    }
+                }
+                //dodaj wielomiany w syndromie
+                arrSsingleSyndrom = arrSsingleSyndrom.reduce((a,b)=>a = this.add2Polynomials(a,b))
+                //przeksztalce wielomian na alfe
+                arrSsingleSyndrom = this.alfas.indexOf(arrSsingleSyndrom)
+                arrSRow.push(arrSsingleSyndrom)
+            }
+            arrS.push(arrSRow)
+        }
+
+        console.log(arrS)
     }
 
     getPolynomialGeneratingCode() {
@@ -243,7 +279,7 @@ class BCH {
         let copyb = b;
         let isDive = true;
         let polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
-        let r = Array(polynomialDegreeDifference+1).fill(0);
+        let r = Array(Math.abs(polynomialDegreeDifference+1)).fill(0);
 
         while (isDive) {
             b = copyb;
@@ -260,7 +296,7 @@ class BCH {
 
         return {
             "result": r.slice(0,r.lastIndexOf("1")+1),
-            "remainder": a.slice(0,a.lastIndexOf("1")+1) || 0
+            "remainder": a.slice(0,a.lastIndexOf("1")+1) || "0"
         }
     }
 
@@ -310,7 +346,7 @@ window.onload = () => {
     let objBCH = {
         codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
         msg: "111", // kodowana wiadomosc
-        howManyErrors: 2, // liczby mozliwych bledow do skorygowania 
+        howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
