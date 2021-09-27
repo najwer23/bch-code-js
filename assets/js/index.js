@@ -1,3 +1,5 @@
+const cloneDeep = require('lodash.clonedeep')
+
 class BCH {
 
     //1+((12+8)%15)*x+((9+16)%15)*x^2
@@ -36,7 +38,7 @@ class BCH {
     decodeMsgBCH() {
         //test
         let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
-        this.syndrom = "00100001" //Cy.remainder
+        this.syndrom = "00101001" //Cy.remainder
 
         //brak bledu w wektorze kodowym
         if (this.syndrom == 0) {
@@ -46,7 +48,6 @@ class BCH {
         console.log("syndrom", this.syndrom) 
         //stworz macierz syndromow
         let s = this.syndrom.split("");
-        console.log("s", s)
 
         let arrS = []; // <--
         let arrSRow = []
@@ -66,14 +67,88 @@ class BCH {
                 }
                 //dodaj wielomiany w syndromie
                 arrSsingleSyndrom = arrSsingleSyndrom.reduce((a,b)=>a = this.add2Polynomials(a,b))
-                //przeksztalce wielomian na alfe
-                arrSsingleSyndrom = this.alfas.indexOf(arrSsingleSyndrom)
+                //przechowuj alfe z wielomianem
+
+                arrSsingleSyndrom = {
+                    poly: arrSsingleSyndrom,
+                    alfa: this.alfas.indexOf(arrSsingleSyndrom),
+                }
+                
                 arrSRow.push(arrSsingleSyndrom)
             }
             arrS.push(arrSRow)
         }
 
-        console.log(arrS)
+        arrS.map(x=>console.log("PRzed", x.map(y=>y.alfa)))
+
+        
+
+
+
+
+        //macierz trojkatna gorna 
+        let arrSDet;
+        let m_ij;
+        let m_ij__a_jk;
+        let r_poly;
+        let r_alfa;
+        let t;
+        let arrSEqu;
+
+
+        for (t = this.howManyErrors+1; t>1; t--) { 
+            arrSDet = cloneDeep(arrS).slice(0, t-1).map(i => i.slice(0, t));
+            for (let j=0; j<t-1; j++) {
+                for (let i=j+1; i<t-1; i++) {
+
+                    r_alfa = this.divIfZeroAlfa(arrSDet[i][j].alfa, arrSDet[j][j].alfa, this.codeLength)
+                    m_ij = {
+                        poly: this.alfas[r_alfa],
+                        alfa: r_alfa
+                    }
+    
+                    for (let k=j+1; k<t; k++) {
+                        r_alfa = this.mulIfZeroAlfa(m_ij.alfa,arrSDet[j][k].alfa,this.codeLength)
+                        m_ij__a_jk = {
+                            poly: this.alfas[r_alfa],
+                            alfa: r_alfa
+                        }
+                        r_poly = this.add2Polynomials(arrSDet[i][k].poly, m_ij__a_jk.poly)
+                        arrSDet[i][k] = {
+                            poly: r_poly,
+                            alfa: this.alfas.indexOf(r_poly)
+                        }
+                    }
+                }
+            }
+
+            let det = "1";
+            for (let i=0; i<t-1; i++) {
+                det = this.mul2Polynomials(det,arrSDet[i][i].poly)
+            }
+
+            if(det.lastIndexOf("1")>0) {
+                console.log("t", t)
+                arrSEqu = cloneDeep(arrS).slice(0, t-1).map(i => i.slice(0, t))
+                break;
+            }
+        }
+
+
+
+
+        
+        //wyznacz wspolczyniki funkcji lokalizacji bledow
+        arrSEqu.map(x=>console.log("Po", x.map(y=>y.alfa)))
+
+    }
+
+    divIfZeroAlfa(a,b,n) {            
+        return (a == n || b == n) ? n : this.customMod((a - b), n) 
+    }
+
+    mulIfZeroAlfa(a,b,n) {            
+        return (a == n || b == n) ? n : this.customMod((a + b), n) 
     }
 
     getPolynomialGeneratingCode() {
