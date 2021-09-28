@@ -446,26 +446,18 @@ class BCH {
         let polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
         let r = Array(Math.abs(polynomialDegreeDifference+1)).fill(0);
 
-        let shiftingTime = 0;
         while (isDive) {
             b = copyb;
             polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
             if (polynomialDegreeDifference >= 0) {
                 b = this.shiftStringRight(b,polynomialDegreeDifference) 
                 r[polynomialDegreeDifference]=1
-
-                let d1 = new Date()
                 a = this.add2Polynomials(a,b)
-                let d2 = new Date()
-                shiftingTime += (d2-d1)/1000
-
             }
             isDive = !(polynomialDegreeDifference < 0)  
         }
 
         r = r.join("")
-
-        console.log("shifting", shiftingTime)
 
         return {
             "result": r.slice(0,r.lastIndexOf("1")+1),
@@ -500,14 +492,11 @@ class BCH {
     }
 
     add2Polynomials(a,b) {
-        r = a.length >= b.length ? a : b;
+        let r = a.length >= b.length ? a : b;
         a = a.padEnd(r.length,'0')
         b = b.padEnd(r.length,'0')
         r = r.split("");
-        for (let i=0; i<r.length; i++) {
-            r[i] = (a[i] == b[i]) ? '0' : '1'
-        }
-
+        for (let i=0; i<r.length; i++) r[i] = a[i] ^ b[i];
         return r.join("");
     }
 };
@@ -516,7 +505,7 @@ class BCH {
 
 window.onload = () => {   
     let objBCH = {
-        codeLength: 2**12-1, //calkowoty mozliwy wektor kodowy
+        codeLength: 2**14-1, //calkowoty mozliwy wektor kodowy
         msg: "111", // kodowana wiadomosc
         howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
