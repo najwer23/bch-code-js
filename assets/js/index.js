@@ -43,6 +43,7 @@ class BCH {
         let date6 = new Date();
         this.timeDecodeMsgBCH = (date6 - date5)/1000
 
+        this.encodeMSE;
         this.syndrom;
 
         let date2 = new Date();
@@ -55,14 +56,14 @@ class BCH {
     }
 
     showTime() {
-        console.log("BCH - short")
-        console.log("Czas kodowanie: ",  this.timeEncodeMsgBCH)
-        console.log("Czas znalezienia wiel. prym: ",  this.timePrimitivePolynomial)
-        console.log("Czas znalezienia wiel. minimalnych: ",  this.timeMinimalPolynomials)
-        console.log("Czas mnozenie msg*x^m:",  this.timeMulDecodeMsgBCH)
-        console.log("Czas dzielienia msg*x^m / G(x): ",  this.timeDivDecodeMsgBCH)
-        console.log("Czas dekodowania: ",  this.timeDecodeMsgBCH)
-        console.log("Czas całkowity: ",  this.timeAllBCH)
+        console.log("")
+        console.log("BCH","Czas kodowanie: ",  this.timeEncodeMsgBCH)
+        console.log("BCH","Czas znalezienia wiel. prym: ",  this.timePrimitivePolynomial)
+        console.log("BCH","Czas znalezienia wiel. minimalnych: ",  this.timeMinimalPolynomials)
+        console.log("BCH","Czas mnozenie msg*x^m:",  this.timeMulDecodeMsgBCH)
+        console.log("BCH","Czas dzielienia msg*x^m / G(x): ",  this.timeDivDecodeMsgBCH)
+        console.log("BCH","Czas dekodowania: ",  this.timeDecodeMsgBCH)
+        console.log("BCH","Czas całkowity: ",  this.timeAllBCH)
     }
 
     encodeMsgBCH() {
@@ -175,46 +176,49 @@ class BCH {
         return s.substring(0, index) + (s[index] == "1" ? "0" : "1") + s.substring(index + 1);
     }
 
-    decodeMsgBCH() {
-        //testc
+    makeErrors(msg) {
+        let arrErrorsIndex = [1,100,200,42,121,18,292]
+        // let arrErrorsIndex = [30, 31, 34, 35, 42]
+        for (let i=0; i<arrErrorsIndex.length; i++) {
+            msg = this.makeOppositeBit(msg,arrErrorsIndex[i])
+        }
+        return msg
+    }
 
-        //make errors in msg
-        this.encodeMSG = this.makeOppositeBit(this.encodeMSG,1)
-        this.encodeMSG = this.makeOppositeBit(this.encodeMSG,2)
-        this.encodeMSG = this.makeOppositeBit(this.encodeMSG,3)
+    decodeMsgBCH() {
+        let msg = this.encodeMSG;
+
+        //dodaj bledy do zakodowanego wektora
+        msg = this.makeErrors(msg);
+        this.encodeMSE = msg;
         
-        let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
+        //znajdz syndrom
+        let Cy = this.div2Polynomials(msg,this.polynomialGeneratingCode)
         this.syndrom = Cy.remainder
 
         //brak bledu w wektorze kodowym
         if (this.syndrom == 0) {
-            return this.encodeMSG.slice(this.encodeMSG.length-this.msgLength+this.msgPaddingAtStart,this.encodeMSG.length)
+            return msg.slice(msg.length-this.msgLength+this.msgPaddingAtStart,msg.length)
         }
 
         let matrixOfSyndorms = this.createMatrixOfSyndroms(this.syndrom)
-        //matrixOfSyndorms.map(x=>console.log("Macierz syndromow", x.map(y=>y.alfa)))
-      
-
-
-        //console.log("Lambda")
         let lambdaCoefficients = this.runGaussGFForPolynomial(matrixOfSyndorms)
         lambdaCoefficients.push({ poly: this.alfas[0], alfa: 0})
-        lambdaCoefficients.reverse();
-
-        //1+((12+8)%15)*x+((9+16)%15)*x^2
+        lambdaCoefficients.reverse()
+       
         for (let i=0; i<=this.codeLength-1; i++) {
             let p = "0"
             for (let j=0; j<lambdaCoefficients.length; j++) {
                 let s = (lambdaCoefficients[j].alfa+(i*(j))) % this.codeLength
                 p = this.add2Polynomials(p,this.alfas[s])
-                //console.log(i,j,s, this.alfas[s], lambdaCoefficients[j].alfa)
             }
             if (p.lastIndexOf("1") < 0) {
-                console.log("Blad w pozycji", this.customMod(-1*i,this.codeLength))
+                console.log("Skorygowany blad w pozycji", this.customMod(-1*i,this.codeLength))
+                msg = this.makeOppositeBit(msg, this.customMod(-1*i,this.codeLength))
             }
         }
-       
-        
+
+        return msg.slice(msg.length-this.msgLength+this.msgPaddingAtStart,msg.length)
     }
 
     operationOn2Alfas(a,b,operation) {
@@ -497,9 +501,9 @@ function text2Binary(s) {
 
 window.onload = () => {   
     let objBCH = {
-        codeLength: 2**8-1, //calkowoty mozliwy wektor kodowy
+        codeLength: 2**9-1, //calkowoty mozliwy wektor kodowy
         msg: text2Binary("Aperion w kodzie"), // kodowana wiadomosc
-        howManyErrors: 15, // liczby mozliwych bledow do skorygowania 
+        howManyErrors: 33, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
