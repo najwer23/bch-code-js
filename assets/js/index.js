@@ -11,14 +11,13 @@ class BCH {
         this.galoisPower = args.codeLength.toString(2).length;
         this.codeLength = this.galoisBase ** this.galoisPower - 1;
         this.howManyErrors = args.howManyErrors; //zdolnosc korekcyjna
-        this.cycleFromPseudoRandomGenerator = "";
 
         let date7 = new Date();
         this.primitivePolynomial = this.getPrimitivePolynomial();
         let date8 = new Date();
         this.timePrimitivePolynomial = (date8 - date7)/1000
 
-        this.alfas = this.getElementsOfField()
+        this.alfas;
         this.minimalPolynomialsRootsAsAlfa = this.getRootsOfMinimalPoly()
 
         let date9 = new Date();
@@ -177,10 +176,10 @@ class BCH {
     }
 
     makeErrors(msg) {
-        let arrErrorsIndex = [1,100,200,42,121,18,292]
+        let arrErrorsIndex = [1,2,5]
         // let arrErrorsIndex = [30, 31, 34, 35, 42]
         for (let i=0; i<arrErrorsIndex.length; i++) {
-            msg = this.makeOppositeBit(msg,arrErrorsIndex[i])
+            msg = this.makeOppositeBit(msg,arrErrorsIndex[i]*1)
         }
         return msg
     }
@@ -317,7 +316,7 @@ class BCH {
 
             // wektor rozwiazan 
             A.push(((this.minimalPolynomialsRootsAsAlfa[k][0])*degreePolynomial) % this.codeLength)
-
+            
             //znajdz wspolczyniki wielomianu minimanego - rozwiazanie liniowego ukladu rownan 
             A = A.map(x=>this.alfas[x].split("")) 
             A = this.makeTranspose(A)
@@ -357,19 +356,6 @@ class BCH {
         return minimalPolynomialsRootsAsAlfa
     }
 
-    getElementsOfField() {
-        let alfas = [];
-        let cycle = this.cycleFromPseudoRandomGenerator + this.cycleFromPseudoRandomGenerator
-
-        for (let i=0; i<this.codeLength; i++) {
-            alfas.push(cycle.slice(i,i+this.galoisPower))
-        }
-
-        alfas.push("0".padStart(this.galoisPower, "0"))
-
-        return alfas
-    }
-
     getPrimitivePolynomial() {
         //poczatkowy wielomian 
         let primitivePolynomialTest = "1"+"1".padStart(this.galoisPower, "0")
@@ -392,40 +378,59 @@ class BCH {
                 }
             }
             primitivePolynomialTest = [...primitivePolynomialTest].join("")
+       
+            if (primitivePolynomialTest == "1".padStart(this.galoisPower, "1"))
+                return 0
         }
         return primitivePolynomialTest
     }
 
-    checkIfPolynomialIsPrimitive(primitivePolynomialTest) {   
+    checkIfPolynomialIsPrimitive(poly) {  
         //wytnij najwyzsza potege wielominau
-        primitivePolynomialTest = primitivePolynomialTest.slice(0,this.galoisPower-1).split("")
-        
-        //pseudo generator losowy elementow ciala
-        let indexs = primitivePolynomialTest.map((x,i)=>x==1?i:-1).filter(x=>x!==-1)
-        let arr = "1".padEnd(this.galoisPower,"0").split("");
-        for (let i=0; i<this.codeLength; i++) {
-            let suma = 0;
-            for (let j=0; j<indexs.length; j++) {
-                suma = this.customMod(+arr[indexs[j]+i]+suma,this.galoisBase);
-            }
-            arr.push(suma)
+        // poly = "11001"
+
+        poly = cloneDeep(poly.slice(0,this.galoisPower-1).split(""))
+        let degree = poly.length+1;
+        let arr = []
+
+        let polyArr = cloneDeep(poly)
+        let polyStr = poly.join("")
+
+        for (let i=0; i<degree; i++) {
+            arr.push(this.leftShifting("1".padStart(this.galoisPower,"0"),i))
         }
-        this.cycleFromPseudoRandomGenerator = arr.slice(0,this.codeLength).join("")
-       
-        //sprawdz czy utworzone elementy z losowego generatora sa unikatowe
-        //sprawdz czy wielomian prymitywny utworzyl maksymalny okres
-        let roots = this.getElementsOfField()
-        for (let i=0; i<roots.length; i++) {
-            if ((roots[2] == roots[i]) && (i != 2)) {
-                return false
+
+        for (let i=0; i<this.codeLength-degree; i++) {
+            let poly = "0"
+            for (let j=0; j<polyArr.length; j++) {
+                if (polyArr[j] == "1")
+                poly = this.add2Polynomials(arr[j],poly)
+            }
+            arr.push(poly)
+            polyStr = this.rightShifting(polyStr+"0",1)
+            polyArr = polyStr.split("")
+        }
+        arr.push("0".padStart(this.galoisPower,"0"))
+
+        for (let i=0; i<arr.length; i++) {
+            for (let j=0; j<arr.length; j++) {
+                if ((arr[i] == arr[j]) && (i!=j)) {
+                    return false
+                }
             }
         }      
+                
+        this.alfas = arr;
         return true
     }
 
-    shiftStringRight(s, shift) {
-        let l = s.length - shift;
-        return s.substring(l) + s.substring(0, l)
+    leftShifting(s, leftShifts) {
+        return s.substring(leftShifts) + s.substring(0, leftShifts);
+    }
+    
+    rightShifting(s,  rightShifts) {
+        let l = s.length - rightShifts;
+        return this.leftShifting(s, l);
     }
 
     getPolynomialDegreeDifference(str1, str2) {
@@ -443,7 +448,7 @@ class BCH {
             b = copyb;
             polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
             if (polynomialDegreeDifference >= 0) {
-                b = this.shiftStringRight(b,polynomialDegreeDifference) 
+                b = this.rightShifting(b,polynomialDegreeDifference) 
                 r[polynomialDegreeDifference]=1
                 a = this.add2Polynomials(a,b)
             }
@@ -501,9 +506,9 @@ function text2Binary(s) {
 
 window.onload = () => {   
     let objBCH = {
-        codeLength: 2**9-1, //calkowoty mozliwy wektor kodowy
-        msg: text2Binary("Aperion w kodzie"), // kodowana wiadomosc
-        howManyErrors: 33, // liczby mozliwych bledow do skorygowania 
+        codeLength: (2**4)-1, //calkowoty mozliwy wektor kodowy
+        msg: "111",//text2Binary("Aperion w kodzie"), // kodowana wiadomosc
+        howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
