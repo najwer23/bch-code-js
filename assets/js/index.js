@@ -4,32 +4,81 @@ class BCH {
 
     // wielomiany sa w postaci 1 + x + x^2 + x^3 ...
     constructor (args) {
+
+        let date1 = new Date();
+
         this.galoisBase = 2;
         this.galoisPower = args.codeLength.toString(2).length;
         this.codeLength = this.galoisBase ** this.galoisPower - 1;
         this.howManyErrors = args.howManyErrors; //zdolnosc korekcyjna
         this.cycleFromPseudoRandomGenerator = "";
+
+        let date7 = new Date();
         this.primitivePolynomial = this.getPrimitivePolynomial();
+        let date8 = new Date();
+        this.timePrimitivePolynomial = (date8 - date7)/1000
+
         this.alfas = this.getElementsOfField()
         this.minimalPolynomialsRootsAsAlfa = this.getRootsOfMinimalPoly()
+
+        let date9 = new Date();
         this.minimalPolynomials = this.getMinimalPolynomials()
+        let date10 = new Date();
+        this.timeMinimalPolynomials = (date10 - date9)/1000
+
         this.polynomialGeneratingCode = this.getPolynomialGeneratingCode()
         this.controlPart = this.polynomialGeneratingCode.length
         this.msgLength = this.codeLength - this.controlPart + 2// calkowita mozliwa wiadomosc - stopien wielominau, jesli wielomian jest 8 stopnia to jest 9 bitow
         this.msgPaddingAtStart = this.msgLength - args.msg.length
         this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
         this.msgWithoutPadding = args.msg; // wiadomosc
+
+        let date3 = new Date();
         this.encodeMSG = this.encodeMsgBCH()
+        let date4 = new Date();
+        this.timeEncodeMsgBCH = (date4 - date3)/1000
+        
+        let date5 = new Date();
         this.decodeMSG = this.decodeMsgBCH()
+        let date6 = new Date();
+        this.timeDecodeMsgBCH = (date6 - date5)/1000
+
         this.syndrom;
 
+        let date2 = new Date();
+        this.timeAllBCH = (date2 - date1)/1000;
+
+        this.timeMulDecodeMsgBCH;
+        this.timeDivDecodeMsgBCH;
+
+        this.showTime();
+    }
+
+    showTime() {
+        console.log("BCH - short")
+        console.log("Czas kodowanie: ",  this.timeEncodeMsgBCH)
+        console.log("Czas znalezienia wiel. prym: ",  this.timePrimitivePolynomial)
+        console.log("Czas znalezienia wiel. minimalnych: ",  this.timeMinimalPolynomials)
+        console.log("Czas mnozenie msg*x^m:",  this.timeMulDecodeMsgBCH)
+        console.log("Czas dzielienia msg*x^m / G(x): ",  this.timeDivDecodeMsgBCH)
+        console.log("Czas dekodowania: ",  this.timeDecodeMsgBCH)
+        console.log("Czas całkowity: ",  this.timeAllBCH)
     }
 
     encodeMsgBCH() {
         //wielomian stopnia generujacego 
         let X = "1".padStart(this.controlPart, "0")
+
+        let date1 = new Date();
         let Y = this.mul2Polynomials(this.msg, X)
+        let date2 = new Date();
+        this.timeMulDecodeMsgBCH = (date2 - date1)/1000
+
+        let date3 = new Date()
         let Z = this.div2Polynomials(Y,this.polynomialGeneratingCode)
+        let date4 = new Date()
+        this.timeDivDecodeMsgBCH = (date4 - date3)/1000
+
         return this.add2Polynomials(Y,Z.remainder)
     }
 
@@ -73,9 +122,11 @@ class BCH {
         let resultOfDivAlfas;
         let resultOfMulAlfas;
         let c=0;
+        let A;
+        let temp;
 
         for (let t = this.howManyErrors+1; t>1; t--) { 
-            A = cloneDeep(matrixOfSyndorms).slice(0, t-1).map(i => i.slice(0, t));
+            A = matrixOfSyndorms.slice(0, t-1).map(i => i.slice(0, t));
             c=0;
             for (let i = 0; i < A.length; i++) {
                 if (A[i][i].alfa == this.codeLength) {
@@ -87,7 +138,7 @@ class BCH {
                     
                     //pivot
                     for (j = i, k = 0; k <= A.length; k++) {
-                        let temp = A[j][k];
+                        temp = A[j][k];
                         A[j][k] = A[j+c][k];
                         A[j+c][k] = temp;
                     }
@@ -120,8 +171,18 @@ class BCH {
         }
     }
 
+    makeOppositeBit(s, index) {
+        return s.substring(0, index) + (s[index] == "1" ? "0" : "1") + s.substring(index + 1);
+    }
+
     decodeMsgBCH() {
-        //test
+        //testc
+
+        //make errors in msg
+        this.encodeMSG = this.makeOppositeBit(this.encodeMSG,1)
+        this.encodeMSG = this.makeOppositeBit(this.encodeMSG,2)
+        this.encodeMSG = this.makeOppositeBit(this.encodeMSG,3)
+        
         let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
         this.syndrom = Cy.remainder
 
@@ -131,9 +192,11 @@ class BCH {
         }
 
         let matrixOfSyndorms = this.createMatrixOfSyndroms(this.syndrom)
-        matrixOfSyndorms.map(x=>console.log("Macierz syndromow", x.map(y=>y.alfa)))
+        //matrixOfSyndorms.map(x=>console.log("Macierz syndromow", x.map(y=>y.alfa)))
       
-        console.log("Lambda")
+
+
+        //console.log("Lambda")
         let lambdaCoefficients = this.runGaussGFForPolynomial(matrixOfSyndorms)
         lambdaCoefficients.push({ poly: this.alfas[0], alfa: 0})
         lambdaCoefficients.reverse();
@@ -147,8 +210,8 @@ class BCH {
                 //console.log(i,j,s, this.alfas[s], lambdaCoefficients[j].alfa)
             }
             if (p.lastIndexOf("1") < 0) {
-                console.log("Blad")
-                console.log(this.customMod(-1*i,this.codeLength))
+                //console.log("Blad")
+                //console.log(this.customMod(-1*i,this.codeLength))
             }
         }
        
@@ -414,11 +477,13 @@ class BCH {
 
         let k=0;
         for (let i=0; i<a.length; i++) {
-            r = "0".padEnd(a.length+b.length-1, '0').split("");
-            for (let j=0; j<b.length; j++) {
-                r[j+k]=a[i]*b[j];
+            if (a[i] != "0") {
+                r = "0".padEnd(a.length+b.length-1, '0').split("");
+                for (let j=0; j<b.length; j++) {
+                    r[j+k]=a[i]*b[j];
+                }
+                R.push(r.join(""))
             }
-            R.push(r.join(""))
             k++;   
         }  
 
@@ -445,21 +510,14 @@ class BCH {
 
 
 
-
-
-
 window.onload = () => {   
     let objBCH = {
-        codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
+        codeLength: 2**12-1, //calkowoty mozliwy wektor kodowy
         msg: "111", // kodowana wiadomosc
         howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
     console.log(bch)
-        // console.log("Mar")
-        // console.log(bch.div2Polynomials(bch.encodeMSG,bch.polynomialGeneratingCode))
-        // console.log(bch.mul2Polynomials("0001", "11101100101"))
-    // console.log(bch.add2Polynomials("001001101", "10111100010011"))
 }
 
