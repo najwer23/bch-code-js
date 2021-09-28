@@ -139,10 +139,10 @@ class BCH {
         lambdaCoefficients.reverse();
 
         //1+((12+8)%15)*x+((9+16)%15)*x^2
-        for (let i=0; i<=this.codeLength; i++) {
+        for (let i=0; i<=this.codeLength-1; i++) {
             let p = "0"
             for (let j=0; j<lambdaCoefficients.length; j++) {
-                let s = (lambdaCoefficients[j].alfa+(i*(j))) % 15
+                let s = (lambdaCoefficients[j].alfa+(i*(j))) % this.codeLength
                 p = this.add2Polynomials(p,this.alfas[s])
                 //console.log(i,j,s, this.alfas[s], lambdaCoefficients[j].alfa)
             }
