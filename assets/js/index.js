@@ -122,7 +122,7 @@ class BCH {
 
     decodeMsgBCH() {
         //test
-        let Cy = this.div2Polynomials("0011001010000111",this.polynomialGeneratingCode)
+        let Cy = this.div2Polynomials(this.encodeMSG,this.polynomialGeneratingCode)
         this.syndrom = Cy.remainder
 
         //brak bledu w wektorze kodowym
