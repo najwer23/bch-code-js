@@ -351,7 +351,7 @@ class BCH {
     getRootsOfMinimalPoly() {
         let minimalPolynomialsRootsAsAlfa = [];
 
-        for (let i=1; i<this.codeLength; i++) {
+        for (let i=1; i<this.howManyErrors*2; i=i+2) {
             let j=0;
             let alfaRootsOne = [];
             while(j<this.galoisPower) {
@@ -505,7 +505,7 @@ class BCH {
 
 window.onload = () => {   
     let objBCH = {
-        codeLength: 2**14-1, //calkowoty mozliwy wektor kodowy
+        codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
         msg: "111", // kodowana wiadomosc
         howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
     }
