@@ -210,8 +210,7 @@ class BCH {
                 //console.log(i,j,s, this.alfas[s], lambdaCoefficients[j].alfa)
             }
             if (p.lastIndexOf("1") < 0) {
-                //console.log("Blad")
-                //console.log(this.customMod(-1*i,this.codeLength))
+                console.log("Blad w pozycji", this.customMod(-1*i,this.codeLength))
             }
         }
        
@@ -431,12 +430,9 @@ class BCH {
         return true
     }
 
-    shiftStringRight(str, shift) {
-        str = str.split("")
-        for (let i=0; i<shift; i++) 
-            str.unshift(str.pop())
-        str = str.join("")
-        return str
+    shiftStringRight(s, shift) {
+        let l = s.length - shift;
+        return s.substring(l) + s.substring(0, l)
     }
 
     getPolynomialDegreeDifference(str1, str2) {
@@ -450,18 +446,26 @@ class BCH {
         let polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
         let r = Array(Math.abs(polynomialDegreeDifference+1)).fill(0);
 
+        let shiftingTime = 0;
         while (isDive) {
             b = copyb;
             polynomialDegreeDifference = this.getPolynomialDegreeDifference(a,b)
             if (polynomialDegreeDifference >= 0) {
-                b = this.shiftStringRight(b,polynomialDegreeDifference)
+                b = this.shiftStringRight(b,polynomialDegreeDifference) 
                 r[polynomialDegreeDifference]=1
+
+                let d1 = new Date()
                 a = this.add2Polynomials(a,b)
+                let d2 = new Date()
+                shiftingTime += (d2-d1)/1000
+
             }
             isDive = !(polynomialDegreeDifference < 0)  
         }
 
         r = r.join("")
+
+        console.log("shifting", shiftingTime)
 
         return {
             "result": r.slice(0,r.lastIndexOf("1")+1),
