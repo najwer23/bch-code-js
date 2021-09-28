@@ -333,17 +333,6 @@ class BCH {
             minPolynomials.push(minPolynomial)
         }
 
-        //usun duplikaty 
-        for(let i=0; i<minPolynomials.length; i++) {
-            let temp = minPolynomials[i];
-            for(let j=i+1; j<minPolynomials.length; j++) {
-                if (temp.join("") == minPolynomials[j].join("")) {
-                    minPolynomials.splice(j,1); j--;
-                    continue
-                }
-            }
-        }
-
         //1 + x + x^2..
         return minPolynomials.map(x=>x.join(""))
     }
@@ -502,12 +491,15 @@ class BCH {
 };
 
 
+function text2Binary(s) {
+    return s.split('').map(x=>x.charCodeAt(0).toString(2)).join('');
+}
 
 window.onload = () => {   
     let objBCH = {
-        codeLength: 2**4-1, //calkowoty mozliwy wektor kodowy
-        msg: "111", // kodowana wiadomosc
-        howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
+        codeLength: 2**8-1, //calkowoty mozliwy wektor kodowy
+        msg: text2Binary("Aperion w kodzie"), // kodowana wiadomosc
+        howManyErrors: 15, // liczby mozliwych bledow do skorygowania 
     }
 
     let bch = new BCH(objBCH)
