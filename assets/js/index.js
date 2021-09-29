@@ -499,7 +499,7 @@ window.onload = () => {
         // kodowana wiadomosc
         msg: text2Binary("Aperion w kodzie"), 
         // liczby mozliwych bledow do skorygowania
-        howManyErrors: 1,  
+        howManyErrors: 33,  
     }
 
     let bch = new BCH(objBCH)
