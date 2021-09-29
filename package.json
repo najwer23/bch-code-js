@@ -8,7 +8,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --output-public-path=/build/ --mode development --progress --open --hot",
-    "build": "webpack --mode production --progress",
+    "build": "webpack --output-public-path=/build/ --mode production --progress",
     "deploy": "gh-pages -d build"
   },
   "dependencies": {

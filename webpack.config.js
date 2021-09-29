@@ -39,12 +39,7 @@ module.exports = {
         use: ['file-loader']
       }
     ]
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: 'index.html'
-    })
-  ]
+  }
 }
 
 // https://github.com/webpack/webpack/issues/1732
