@@ -95,49 +95,35 @@ class BCH {
 
         for (let i=0; i<this.howManyErrors; i++) {
             arrSRow = [];
-            for(let j=0; j<this.howManyErrors + 1; j++) {
+            for (let j=0; j<this.howManyErrors+1; j++) {
                 arrSsingleSyndrom = []
                 
                 //przeksztalc syndrom na alfe, potem na wielomian
-                for (let k=0; k<s.length; k++) {
-                    if (s[k]=="1") {
-                        let S = (+(k)*(j+1+i)) % this.codeLength
-                        S = this.alfas[S]
-                        arrSsingleSyndrom.push(S)
-                    }
-                }
+                for (let k=0; k<s.length; k++)
+                    if (s[k]=="1") 
+                        arrSsingleSyndrom.push(this.alfas[(+(k)*(j+1+i)) % this.codeLength])
 
                 // superpozycja elemetow ciala - alfy i wilomian
                 arrSsingleSyndrom = arrSsingleSyndrom.reduce((a,b)=>a = this.add2Polynomials(a,b))
-                
-                arrSsingleSyndrom = {
-                    poly: arrSsingleSyndrom,
-                    alfa: this.alfas.indexOf(arrSsingleSyndrom) == -1 ? "Z" : this.alfas.indexOf(arrSsingleSyndrom),
-                }
-                
+                arrSsingleSyndrom = this.alfas.indexOf(arrSsingleSyndrom) == -1 ? "Z" : this.alfas.indexOf(arrSsingleSyndrom),
                 arrSRow.push(arrSsingleSyndrom)
             }
             arrS.push(arrSRow)
         }
-
         return arrS
     }
 
     //Binary Gauss-Jordan Elimination Method for polynomial
     runGaussGFForPolynomial(matrixOfSyndorms) {
-        let resultOfDivAlfas;
-        let resultOfMulAlfas;
-        let c=0;
-        let A;
-        let temp;
+        let resultOfDivAlfas, resultOfMulAlfas, c, A, temp, det;
 
         for (let t = this.howManyErrors+1; t>1; t--) { 
             A = matrixOfSyndorms.slice(0, t-1).map(i => i.slice(0, t));
             c=0;
             for (let i = 0; i < A.length; i++) {
-                if (A[i][i].alfa == "Z") {
+                if (A[i][i] == "Z") {
                     c = 1;
-                    while ((i + c) < A.length && A[i + c][i].alfa == "Z") { c++; }
+                    while ((i + c) < A.length && A[i + c][i] == "Z") { c++; }
                     if ((i + c) == A.length) { break; }
                     
                     //pivot
@@ -152,7 +138,7 @@ class BCH {
                     if (i != j) {
                         resultOfDivAlfas = this.operationOn2Alfas(A[j][i], A[i][i], "/") 
                         for (let k = 0; k <= A.length; k++) {
-                            resultOfMulAlfas = this.operationOn2Alfas(resultOfDivAlfas,A[i][k], "*") 
+                            resultOfMulAlfas = this.operationOn2Alfas(resultOfDivAlfas, A[i][k], "*") 
                             A[j][k] = this.operationOn2Alfas(A[j][k], resultOfMulAlfas, "+")
                         }
                     }
@@ -160,13 +146,12 @@ class BCH {
             }
 
             //determinant(A)
-            let det = "1";
-            for (let i=0; i<t-1; i++) {
-                det = this.mul2Polynomials(det,A[i][i].poly)
-            }
+            det = "1";
+            for (let i=0; i<A.length; i++)
+                det = this.mul2Polynomials(det,this.getPolyFromAlfa(A[i][i]))
 
             //lambdaCoefficients
-            if(det.lastIndexOf("1")>0) {
+            if (det.lastIndexOf("1")>0) {
                 for (let i=0; i<A.length; i++) 
                     A[i][A.length] = this.operationOn2Alfas(A[i][A.length], A[i][i],"/")
                 return A.map(c => c[A.length])
@@ -205,13 +190,13 @@ class BCH {
 
         let matrixOfSyndorms = this.createMatrixOfSyndroms(this.syndrom)
         let lambdaCoefficients = this.runGaussGFForPolynomial(matrixOfSyndorms)
-        lambdaCoefficients.push({ poly: this.alfas[0], alfa: 0})
+        lambdaCoefficients.push(0)
         lambdaCoefficients.reverse()
 
         for (let i=0; i<=this.codeLength-1; i++) {
             let root = "0"
             for (let j=0; j<lambdaCoefficients.length; j++) {
-                s = (lambdaCoefficients[j].alfa != "Z") ? this.alfas[(lambdaCoefficients[j].alfa+(i*(j))) % this.codeLength] : "0"
+                s = (lambdaCoefficients[j] != "Z") ? this.getPolyFromAlfa((lambdaCoefficients[j]+(i*(j))) % this.codeLength) : "0"
                 root = this.add2Polynomials(root,s)
             }
             if (root.lastIndexOf("1") < 0) {
@@ -228,33 +213,35 @@ class BCH {
         let resultPoly;
 
         if (operation == "+") {
-            if (a.alfa == "Z")
-                resultPoly = b.poly
-            if (b.alfa == "Z")
-                resultPoly = a.poly
-            if ((a.alfa == b.alfa) && (a.alfa == "Z"))
+            if (a == "Z")
+                resultPoly = this.getPolyFromAlfa(b)
+            if (b == "Z")
+                resultPoly = this.getPolyFromAlfa(a)
+            if ((a == b) && (a == "Z"))
                 resultPoly = "0"
             else 
-                resultPoly = this.add2Polynomials(a.poly,b.poly)
+                resultPoly = this.add2Polynomials(this.getPolyFromAlfa(a),this.getPolyFromAlfa(b))
 
-            return {
-                poly: resultPoly,
-                alfa: (resultPoly.indexOf("1") < 0) ? "Z" : this.alfas.indexOf(resultPoly)
-            }
+            return this.getAlfaFromPoly(resultPoly)
         }
 
         if (operation == "/") {
-            r_alfa = (a.alfa == "Z" || b.alfa == "Z") ? "Z" : this.customMod((a.alfa - b.alfa), n) 
+            r_alfa = (a == "Z" || b == "Z") ? "Z" : this.customMod((a - b), n) 
         }
 
         if (operation == "*") {
-            r_alfa = (a.alfa == "Z" || b.alfa == "Z") ? "Z" : this.customMod((a.alfa + b.alfa), n) 
+            r_alfa = (a == "Z" || b == "Z") ? "Z" : this.customMod((a + b), n) 
         }
 
-        return {
-            poly: r_alfa == "Z" ? "0" : this.alfas[r_alfa],
-            alfa: r_alfa
-        }
+        return  r_alfa
+    }
+
+    getPolyFromAlfa(a) {
+        return a == "Z" ? "0" : this.alfas[a]
+    }
+
+    getAlfaFromPoly(p) {
+        return (p.indexOf("1") < 0) ? "Z" : this.alfas.indexOf(p)
     }
 
 
@@ -355,12 +342,12 @@ class BCH {
         let minimalPolynomialsRootsAsAlfa = [];
         for (let i=1; i<this.howManyErrors*2; i=i+2) {
             let j=0;
-            let alfaRootsOne = [];
+            let minimalPolynomialsRootAsAlfa = [];
             while(j<this.galoisPower) {
-                alfaRootsOne.push((i*(this.galoisBase**(j))) % (this.codeLength))
+                minimalPolynomialsRootAsAlfa.push((i*(this.galoisBase**(j))) % (this.codeLength))
                 j++;
             }
-            minimalPolynomialsRootsAsAlfa.push([...new Set(alfaRootsOne)])
+            minimalPolynomialsRootsAsAlfa.push([...new Set(minimalPolynomialsRootAsAlfa)])
         }
         return minimalPolynomialsRootsAsAlfa
     }
