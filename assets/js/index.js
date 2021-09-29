@@ -4,50 +4,57 @@ class BCH {
 
     // wielomiany sa w postaci 1 + x + x^2 + x^3 ...
     constructor (args) {
-
-        let date1 = new Date();
-
-        this.galoisBase = 2;
-        this.galoisPower = args.codeLength.toString(2).length;
-        this.codeLength = this.galoisBase ** this.galoisPower - 1;
-        this.howManyErrors = args.howManyErrors; //zdolnosc korekcyjna
-
-        let date7 = new Date();
-        this.primitivePolynomial = this.getPrimitivePolynomial();
-        let date8 = new Date();
-        this.timePrimitivePolynomial = (date8 - date7)/1000
-
-        this.alfas;
-        this.minimalPolynomialsRootsAsAlfa = this.getRootsOfMinimalPoly()
-
-        let date9 = new Date();
-        this.minimalPolynomials = this.getMinimalPolynomials()
-        let date10 = new Date();
-        this.timeMinimalPolynomials = (date10 - date9)/1000
-
-        this.polynomialGeneratingCode = this.getPolynomialGeneratingCode()
+        let d1 = new Date();
+        // podstawa ciala
+        this.galoisBase = 2; 
+        // stopien ciala
+        this.galoisPower = args.codeLength.toString(2).length; 
+        // dlugosc wektora kodowego
+        this.codeLength = this.galoisBase ** this.galoisPower - 1; 
+        // zdolnosc korekcyjna, liczba bledow mozliwa do wykrycia i skorygowania
+        this.howManyErrors = args.howManyErrors; 
+        let d7 = new Date();
+        // wielomian genrujacy element ciala GF
+        this.primitivePolynomial = this.getPrimitivePolynomial(); 
+        let d8 = new Date();
+        this.timePrimitivePolynomial = (d8 - d7)/1000
+        // elementy ciala
+        this.alfas; 
+        // tablica miejsc zerowych wielomianu minimalnego. miejsca zerowe to alfy
+        this.minimalPolynomialsRootsAsAlfa = this.getRootsOfMinimalPoly() 
+        let d9 = new Date();
+        // tablica wielomianow minimalnych
+        this.minimalPolynomials = this.getMinimalPolynomials() 
+        let d10 = new Date();
+        this.timeMinimalPolynomials = (d10 - d9)/1000
+        // wielomian generujacy kod
+        this.polynomialGeneratingCode = this.getPolynomialGeneratingCode() 
+        // dlugosc czesci kontrolnej w wektorze kodowym
         this.controlPart = this.polynomialGeneratingCode.length
-        this.msgLength = this.codeLength - this.controlPart + 2// calkowita mozliwa wiadomosc - stopien wielominau, jesli wielomian jest 8 stopnia to jest 9 bitow
+        // calkowita mozliwa wiadomosc (stopien wielominau), jesli wielomian jest 8 stopnia to jest 9 bitow
+        this.msgLength = this.codeLength - this.controlPart + 2
+        // rozszerzona wiadomosc o zera
         this.msgPaddingAtStart = this.msgLength - args.msg.length
-        this.msg = args.msg.padStart(this.msgLength, '0'); // wiadomosc
-        this.msgWithoutPadding = args.msg; // wiadomosc
-
-        let date3 = new Date();
+        // wiadomosc z dodatkowymi zerami, zeby rozszrzyc wektor
+        this.msg = args.msg.padStart(this.msgLength, '0'); 
+        // wiadomosc
+        this.msgWithoutPadding = args.msg; 
+        let d3 = new Date();
+        // zakodowana wiadomosc
         this.encodeMSG = this.encodeMsgBCH()
-        let date4 = new Date();
-        this.timeEncodeMsgBCH = (date4 - date3)/1000
-        
-        let date5 = new Date();
+        let d4 = new Date();
+        this.timeEncodeMsgBCH = (d4 - d3)/1000
+        let d5 = new Date();
+        // zdekodowana wiadomosc
         this.decodeMSG = this.decodeMsgBCH()
-        let date6 = new Date();
-        this.timeDecodeMsgBCH = (date6 - date5)/1000
-
+        let d6 = new Date();
+        this.timeDecodeMsgBCH = (d6 - d5)/1000
+        // zakodowana wiadomosc z bledami
         this.encodeMSE;
+        // syndorm - wielomian z infomacja o bledzie w wektorze kodowym
         this.syndrom;
-
-        let date2 = new Date();
-        this.timeAllBCH = (date2 - date1)/1000;
-
+        let d2 = new Date();
+        this.timeAllBCH = (d2 - d1)/1000;
         this.timeMulDecodeMsgBCH;
         this.timeDivDecodeMsgBCH;
 
@@ -56,29 +63,27 @@ class BCH {
 
     showTime() {
         console.log("")
-        console.log("BCH","Czas kodowanie: ",  this.timeEncodeMsgBCH)
-        console.log("BCH","Czas znalezienia wiel. prym: ",  this.timePrimitivePolynomial)
-        console.log("BCH","Czas znalezienia wiel. minimalnych: ",  this.timeMinimalPolynomials)
-        console.log("BCH","Czas mnozenie msg*x^m:",  this.timeMulDecodeMsgBCH)
-        console.log("BCH","Czas dzielienia msg*x^m / G(x): ",  this.timeDivDecodeMsgBCH)
-        console.log("BCH","Czas dekodowania: ",  this.timeDecodeMsgBCH)
-        console.log("BCH","Czas całkowity: ",  this.timeAllBCH)
+        console.log("BCH","Time to encode: ",  this.timeEncodeMsgBCH)
+        console.log("BCH","Find primitive poly: ",  this.timePrimitivePolynomial)
+        console.log("BCH","Find minimal polys: ",  this.timeMinimalPolynomials)
+        console.log("BCH","Time mul msg*x^m:",  this.timeMulDecodeMsgBCH)
+        console.log("BCH","Time div msg*x^m / G(x): ",  this.timeDivDecodeMsgBCH)
+        console.log("BCH","Time to decode: ",  this.timeDecodeMsgBCH)
+        console.log("BCH","Time: ",  this.timeAllBCH)
     }
 
     encodeMsgBCH() {
         //wielomian stopnia generujacego 
         let X = "1".padStart(this.controlPart, "0")
-
-        let date1 = new Date();
+        
+        let d1 = new Date();
         let Y = this.mul2Polynomials(this.msg, X)
-        let date2 = new Date();
-        this.timeMulDecodeMsgBCH = (date2 - date1)/1000
-
-        let date3 = new Date()
+        let d2 = new Date();
+        this.timeMulDecodeMsgBCH = (d2 - d1)/1000
+        let d3 = new Date()
         let Z = this.div2Polynomials(Y,this.polynomialGeneratingCode)
-        let date4 = new Date()
-        this.timeDivDecodeMsgBCH = (date4 - date3)/1000
-
+        let d4 = new Date()
+        this.timeDivDecodeMsgBCH = (d4 - d3)/1000
         return this.add2Polynomials(Y,Z.remainder)
     }
 
@@ -92,7 +97,8 @@ class BCH {
             arrSRow = [];
             for(let j=0; j<this.howManyErrors + 1; j++) {
                 arrSsingleSyndrom = []
-                //przeksztalc syndrom na alfe, ale na wielomian
+                
+                //przeksztalc syndrom na alfe, potem na wielomian
                 for (let k=0; k<s.length; k++) {
                     if (s[k]=="1") {
                         let S = (+(k)*(j+1+i)) % this.codeLength
@@ -103,10 +109,10 @@ class BCH {
 
                 // superpozycja elemetow ciala - alfy i wilomian
                 arrSsingleSyndrom = arrSsingleSyndrom.reduce((a,b)=>a = this.add2Polynomials(a,b))
-
+                
                 arrSsingleSyndrom = {
                     poly: arrSsingleSyndrom,
-                    alfa: this.alfas.indexOf(arrSsingleSyndrom),
+                    alfa: this.alfas.indexOf(arrSsingleSyndrom) == -1 ? "Z" : this.alfas.indexOf(arrSsingleSyndrom),
                 }
                 
                 arrSRow.push(arrSsingleSyndrom)
@@ -117,7 +123,7 @@ class BCH {
         return arrS
     }
 
-    //gauss jordan elimination dla wyznacznika i rozwiazania ukladu rownan w ciele pod funkcje lambda
+    //Binary Gauss-Jordan Elimination Method for polynomial
     runGaussGFForPolynomial(matrixOfSyndorms) {
         let resultOfDivAlfas;
         let resultOfMulAlfas;
@@ -129,11 +135,9 @@ class BCH {
             A = matrixOfSyndorms.slice(0, t-1).map(i => i.slice(0, t));
             c=0;
             for (let i = 0; i < A.length; i++) {
-                if (A[i][i].alfa == this.codeLength) {
+                if (A[i][i].alfa == "Z") {
                     c = 1;
-                    
-                    while ((i + c) < A.length && A[i + c][i].alfa == this.codeLength) { c++; }
-                    
+                    while ((i + c) < A.length && A[i + c][i].alfa == "Z") { c++; }
                     if ((i + c) == A.length) { break; }
                     
                     //pivot
@@ -161,11 +165,10 @@ class BCH {
                 det = this.mul2Polynomials(det,A[i][i].poly)
             }
 
+            //lambdaCoefficients
             if(det.lastIndexOf("1")>0) {
-                //lambdaCoefficients
-                for (let i=0; i<A.length; i++) {
+                for (let i=0; i<A.length; i++) 
                     A[i][A.length] = this.operationOn2Alfas(A[i][A.length], A[i][i],"/")
-                }
                 return A.map(c => c[A.length])
             }
         }
@@ -176,7 +179,7 @@ class BCH {
     }
 
     makeErrors(msg) {
-        let arrErrorsIndex = [1,2,5]
+        let arrErrorsIndex = [1,2,4,5,12]
         // let arrErrorsIndex = [30, 31, 34, 35, 42]
         for (let i=0; i<arrErrorsIndex.length; i++) {
             msg = this.makeOppositeBit(msg,arrErrorsIndex[i]*1)
@@ -204,44 +207,52 @@ class BCH {
         let lambdaCoefficients = this.runGaussGFForPolynomial(matrixOfSyndorms)
         lambdaCoefficients.push({ poly: this.alfas[0], alfa: 0})
         lambdaCoefficients.reverse()
-       
+
         for (let i=0; i<=this.codeLength-1; i++) {
-            let p = "0"
+            let root = "0"
             for (let j=0; j<lambdaCoefficients.length; j++) {
-                let s = (lambdaCoefficients[j].alfa+(i*(j))) % this.codeLength
-                p = this.add2Polynomials(p,this.alfas[s])
+                s = (lambdaCoefficients[j].alfa != "Z") ? this.alfas[(lambdaCoefficients[j].alfa+(i*(j))) % this.codeLength] : "0"
+                root = this.add2Polynomials(root,s)
             }
-            if (p.lastIndexOf("1") < 0) {
+            if (root.lastIndexOf("1") < 0) {
                 console.log("Skorygowany blad w pozycji", this.customMod(-1*i,this.codeLength))
                 msg = this.makeOppositeBit(msg, this.customMod(-1*i,this.codeLength))
             }
         }
-
         return msg.slice(msg.length-this.msgLength+this.msgPaddingAtStart,msg.length)
     }
 
     operationOn2Alfas(a,b,operation) {
         let n = this.codeLength;
         let r_alfa;
+        let resultPoly;
 
         if (operation == "+") {
-            let resultPoly = this.add2Polynomials(a.poly,b.poly)
+            if (a.alfa == "Z")
+                resultPoly = b.poly
+            if (b.alfa == "Z")
+                resultPoly = a.poly
+            if ((a.alfa == b.alfa) && (a.alfa == "Z"))
+                resultPoly = "0"
+            else 
+                resultPoly = this.add2Polynomials(a.poly,b.poly)
+
             return {
                 poly: resultPoly,
-                alfa: this.alfas.indexOf(resultPoly)
+                alfa: (resultPoly.indexOf("1") < 0) ? "Z" : this.alfas.indexOf(resultPoly)
             }
         }
 
         if (operation == "/") {
-            r_alfa = (a.alfa == n || b.alfa == n) ? n : this.customMod((a.alfa - b.alfa), n) 
+            r_alfa = (a.alfa == "Z" || b.alfa == "Z") ? "Z" : this.customMod((a.alfa - b.alfa), n) 
         }
 
         if (operation == "*") {
-            r_alfa = (a.alfa == n || b.alfa == n) ? n : this.customMod((a.alfa + b.alfa), n) 
+            r_alfa = (a.alfa == "Z" || b.alfa == "Z") ? "Z" : this.customMod((a.alfa + b.alfa), n) 
         }
 
         return {
-            poly: this.alfas[r_alfa],
+            poly: r_alfa == "Z" ? "0" : this.alfas[r_alfa],
             alfa: r_alfa
         }
     }
@@ -259,12 +270,12 @@ class BCH {
         return arr[0].map((x,i) => arr.map(x => x[i]));
     }
 
-    // JavaScript ma problem z operacja modula na liczbach ujemnych
+    // Nowa operacja modulo -1%3 == 1
     customMod(a,n) {
         return ((a%n)+n)%n;
     }
 
-    // Gauss-Jordan Elimination Method in GF
+    // Binary Gauss-Jordan Elimination Method
     runGaussGF(A) {
         let i=0;
         let j=0;
@@ -317,12 +328,12 @@ class BCH {
             // wektor rozwiazan 
             A.push(((this.minimalPolynomialsRootsAsAlfa[k][0])*degreePolynomial) % this.codeLength)
             
-            //znajdz wspolczyniki wielomianu minimanego - rozwiazanie liniowego ukladu rownan 
+            //znajdz wspolczyniki wielomianu minimalnego - rozwiazanie liniowego ukladu rownan 
             A = A.map(x=>this.alfas[x].split("")) 
             A = this.makeTranspose(A)
             A = this.runGaussGF(A)
 
-            // transformuj wektor rozwiazan do postaci 1 + x + x^2...
+            // transformuj wektor rozwiazan do postaci 1 + x + x^2... i dodaj element 1
             let minPolynomial = [1];
             for (let i=0; i<degreePolynomial; i++) {
                 minPolynomial.push(A[i])
@@ -342,7 +353,6 @@ class BCH {
 
     getRootsOfMinimalPoly() {
         let minimalPolynomialsRootsAsAlfa = [];
-
         for (let i=1; i<this.howManyErrors*2; i=i+2) {
             let j=0;
             let alfaRootsOne = [];
@@ -352,7 +362,6 @@ class BCH {
             }
             minimalPolynomialsRootsAsAlfa.push([...new Set(alfaRootsOne)])
         }
-
         return minimalPolynomialsRootsAsAlfa
     }
 
@@ -362,9 +371,8 @@ class BCH {
 
         //szukaj wielomianu prymitywnego tak dlugo az znajdziesz
         for (let i=0; ;i++) {
-            if (this.checkIfPolynomialIsPrimitive(primitivePolynomialTest)) {
+            if (this.checkIfPolynomialIsPrimitive(primitivePolynomialTest))
                 break;
-            }
 
             primitivePolynomialTest = primitivePolynomialTest.split("").map(x=>+x);
             primitivePolynomialTest[0] += 1; 
@@ -378,7 +386,8 @@ class BCH {
                 }
             }
             primitivePolynomialTest = [...primitivePolynomialTest].join("")
-       
+            
+            //gdyby nie znalazl zadnego wielominau, niech zatrzyma nieskonczona petle
             if (primitivePolynomialTest == "1".padStart(this.galoisPower, "1"))
                 return 0
         }
@@ -386,9 +395,6 @@ class BCH {
     }
 
     checkIfPolynomialIsPrimitive(poly) {  
-        //wytnij najwyzsza potege wielominau
-        // poly = "11001"
-
         poly = cloneDeep(poly.slice(0,this.galoisPower-1).split(""))
         let degree = poly.length+1;
         let arr = []
@@ -396,9 +402,8 @@ class BCH {
         let polyArr = cloneDeep(poly)
         let polyStr = poly.join("")
 
-        for (let i=0; i<degree; i++) {
+        for (let i=0; i<degree; i++)
             arr.push(this.leftShifting("1".padStart(this.galoisPower,"0"),i))
-        }
 
         for (let i=0; i<this.codeLength-degree; i++) {
             let poly = "0"
@@ -410,16 +415,13 @@ class BCH {
             polyStr = this.rightShifting(polyStr+"0",1)
             polyArr = polyStr.split("")
         }
-        arr.push("0".padStart(this.galoisPower,"0"))
 
-        for (let i=0; i<arr.length; i++) {
-            for (let j=0; j<arr.length; j++) {
-                if ((arr[i] == arr[j]) && (i!=j)) {
+        for (let i=0; i<arr.length; i++)
+            for (let j=0; j<arr.length; j++) 
+                if ((arr[i] == arr[j]) && (i!=j)) 
                     return false
-                }
-            }
-        }      
-                
+
+        arr.push("1".padStart(this.galoisPower,"0"))
         this.alfas = arr;
         return true
     }
@@ -429,12 +431,11 @@ class BCH {
     }
     
     rightShifting(s,  rightShifts) {
-        let l = s.length - rightShifts;
-        return this.leftShifting(s, l);
+        return this.leftShifting(s, s.length - rightShifts);
     }
 
-    getPolynomialDegreeDifference(str1, str2) {
-        return str1.lastIndexOf('1') - str2.lastIndexOf('1')
+    getPolynomialDegreeDifference(s1, s2) {
+        return s1.lastIndexOf('1') - s2.lastIndexOf('1')
     }
 
     div2Polynomials(a,b) {
@@ -471,6 +472,7 @@ class BCH {
 
         let k=0;
         for (let i=0; i<a.length; i++) {
+            // nie mnoz przez zera
             if (a[i] != "0") {
                 r = "0".padEnd(a.length+b.length-1, '0').split("");
                 for (let j=0; j<b.length; j++) {
@@ -485,7 +487,6 @@ class BCH {
         for (let i=0; i<R.length; i++) {
             result = this.add2Polynomials(result,R[i])
         }
-        
         return result
     }
 
@@ -506,9 +507,12 @@ function text2Binary(s) {
 
 window.onload = () => {   
     let objBCH = {
-        codeLength: (2**4)-1, //calkowoty mozliwy wektor kodowy
-        msg: "111",//text2Binary("Aperion w kodzie"), // kodowana wiadomosc
-        howManyErrors: 3, // liczby mozliwych bledow do skorygowania 
+        //calkowoty mozliwy wektor kodowy
+        codeLength: (2**8)-1, 
+        // kodowana wiadomosc
+        msg: text2Binary("Aperion w kodzie"), 
+        // liczby mozliwych bledow do skorygowania
+        howManyErrors: 40,  
     }
 
     let bch = new BCH(objBCH)
