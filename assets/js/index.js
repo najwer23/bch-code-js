@@ -32,7 +32,7 @@ class BCH {
         // dlugosc czesci kontrolnej w wektorze kodowym
         this.controlPart = this.polynomialGeneratingCode.length
         // calkowita mozliwa wiadomosc (stopien wielominau), jesli wielomian jest 8 stopnia to jest 9 bitow
-        this.msgLength = this.codeLength - this.controlPart + 2
+        this.msgLength = this.codeLength - this.controlPart + 1
         // rozszerzona wiadomosc o zera
         this.msgPaddingAtStart = this.msgLength - args.msg.length
         // wiadomosc z dodatkowymi zerami, zeby rozszrzyc wektor
@@ -164,7 +164,7 @@ class BCH {
     }
 
     makeErrors(msg) {
-        let arrErrorsIndex = [1,2,4,5,12]
+        let arrErrorsIndex = [500,499,498,497,496,495,494,1,2,3,4,5,6,7,8,9,10,11,12,13,14,300]
         // let arrErrorsIndex = [30, 31, 34, 35, 42]
         for (let i=0; i<arrErrorsIndex.length; i++) {
             msg = this.makeOppositeBit(msg,arrErrorsIndex[i]*1)
@@ -176,7 +176,7 @@ class BCH {
         let msg = this.encodeMSG;
 
         //dodaj bledy do zakodowanego wektora
-        msg = this.makeErrors(msg);
+        // msg = this.makeErrors(msg);
         this.encodeMSE = msg;
         
         //znajdz syndrom
@@ -495,14 +495,88 @@ function text2Binary(s) {
 window.onload = () => {   
     let objBCH = {
         //calkowoty mozliwy wektor kodowy
-        codeLength: (2**8)-1, 
+        codeLength: (2**9)-1, 
         // kodowana wiadomosc
         msg: text2Binary("Aperion w kodzie"), 
         // liczby mozliwych bledow do skorygowania
-        howManyErrors: 40,  
+        howManyErrors: 1,  
     }
 
     let bch = new BCH(objBCH)
     console.log(bch)
+
+    let alfas = document.querySelector("#alfas")
+    let alfasPolyRoot = document.querySelector("#alfasPolyRoot")
+    let polyMinimal = document.querySelector("#polyMinimal")
+    let alfasTxt = "";
+    let alfasPolyRootTxt = "";
+    let polyMinimalTxt = "";
+    let poly, polyC;
+
+    alfasTxt = showPolyAlfa(0,20,alfasTxt)
+    alfasTxt += "...<br>"
+    alfasTxt = showPolyAlfa(100,110,alfasTxt)
+    alfasTxt += "...<br>"
+    alfasTxt = showPolyAlfa(500,512,alfasTxt)
+    alfas.innerHTML = alfasTxt
+    MathJax.typeset()
+
+    alfasPolyRootTxt = showPolyAlfaRoots(0,15,alfasPolyRootTxt)
+    alfasPolyRootTxt += "...<br>"
+    alfasPolyRoot.innerHTML = alfasPolyRootTxt; 
+    MathJax.typeset()
+
+    polyMinimalTxt = showPoly(0,15,polyMinimalTxt)
+    polyMinimalTxt += "...<br>"
+    polyMinimal.innerHTML = polyMinimalTxt;     
+    MathJax.typeset()
+
+    function showPoly(a,b,txt) {
+        for (let i=a; i<b; i++) {
+            poly = bch.minimalPolynomials[i].split("").reverse()
+            polyC = cloneDeep(poly)
+            let isAddMark = false;
+            for (let j=0; j<bch.minimalPolynomials[i].length; j++) {
+                poly[j] = poly[j] != 0 ? "$x^{" + j + "}$" : "";
+                if (isAddMark) { 
+                    poly[j] = poly[j] != 0 ? "$+x^{" + j + "}$" : "";
+                }
+                if (polyC[j] == "1") { isAddMark = true}
+            }
+            txt +="$m(x)_{"+(i+1)+"}$&nbsp;=&nbsp;$"+bch.minimalPolynomials[i].split("").reverse().join("")+"$&nbsp;" +("$=$&nbsp;"+poly.join(""))+ "<br>"; 
+        }
+        return txt
+    }
+
+    function showPolyAlfaRoots(a,b,txt) {
+        let alfy = bch.minimalPolynomialsRootsAsAlfa
+        for (let i=a; i<b; i++) {
+            let s = "$m(x)_{"+(i+1)+"}$&nbsp=&nbsp"
+            for (let j=0; j<alfy[i].length; j++) {
+                s += "$(x-a^{" + alfy[i][j] + "})$"
+            }
+            txt += s + "<br>"
+        }
+        return txt
+    }
+
+    function showPolyAlfa(a,b,txt) {
+        for (let i=a; i<b; i++) {
+            poly = bch.alfas[i].split("")
+            polyC = cloneDeep(poly)
+            let isAddMark = false;
+            for (let j=0; j<bch.alfas[i].length; j++) {
+                poly[j] = poly[j] != 0 ? "$a^{" + Math.abs((8 -(j*poly[j]))) + "}$" : "";
+                if (isAddMark) { 
+                    poly[j] = poly[j] != 0 ? "$+a^{" + Math.abs((8 -(j*polyC[j]))) + "}$" : "";
+                }
+                if (polyC[j] == "1") { isAddMark = true}
+            }
+            txt +="$"+bch.alfas[i]+"$"+"&nbsp;&nbsp;=&nbsp;&nbsp;$ a^{"+i+"}$ " + (i>8?("$=$&nbsp;"+poly.join("")):"")+ "<br>"; 
+        }
+        return txt
+    }
+ 
 }
+
 

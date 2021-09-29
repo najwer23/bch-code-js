@@ -10,11 +10,137 @@
     <meta name="keywords" content="Mariusz Najwer, najwer23" />
     <link rel="icon" type="image/png" href="assets/img/f.png" />
     <script src="build/styleMain.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                packages: ['amsmath','base', 'newcommand', 'configMacros',{'[+]': ['physics']}]
+            },
+            extensions: ["tex2jax.js"],
+            jax: ["input/TeX","output/HTML-CSS"],
+            tex2jax: { 
+                inlineMath: [["$","$"],["\\(","\\)"]]
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            loader: {load: ['input/asciimath', 'output/chtml','[tex]/physics']}
+        };
+        </script>
+    <script type="text/javascript" id="MathJax-script" defer
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+
+
+
     <script src="build/app.js"></script>
-</head>
+
+   </head>
 <body>
     <main>
-        Sprawdz konsole :)
+        <div class="section-text">
+            <h1>Reed–Solomon error correction (BCH): encoder, decoder</h1>
+            <p>Mariusz Najwer 29.09.2021</p>
+            <p>https://najwer23.github.io/</p>
+        </div>
+        <div class="section-text">
+            <h2>Intro</h2>
+            <p>Reed–Solomon codes are a group of error-correcting codes that were introduced by Irving S. Reed and Gustave Solomon in 1960. They have many applications, the most prominent of which include consumer technologies such as MiniDiscs, CDs, DVDs, Blu-ray discs, QR codes, data transmission technologies such as DSL and WiMAX, broadcast systems such as satellite communications, DVB and ATSC, storage systems such as RAID 6, coding schemes used by NASA missions.</p>
+            <p class="credits">Credits: https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction</p>
+        </div>
+        <div class="section-text">
+            <h2>Encoding</h2>
+            <ul>
+                <li>1. First of all, we must select the message. I chose a message: $$M(x)=\text{ Aperion w kodzie }$$</li>
+                <li>Let's change coding of message on binary notation!</li>
+                <li class="binary"><br>10000011110000110010111100101101001110111111011101000001110111100000110101111011111100100111101011010011100101</li>
+            </ul>
+            <ul>
+                <li>2. Next we have to choose parametrs of our code. So, I want my program to able to find and correct less or the same 33 errors, because i made reasearch and find out that in my transsmision channel I got ~20 errors</li>
+                <li>Selected the code of length 511.</li>
+                <li>$$GF = (2^9)$$</li>
+                <li>Now we must find a primitive polynomial to generate elements of field.</li>
+                <li>$$p(x) = 1+x^4+x^9$$</li>
+                <li class="credits">Credits: https://youtu.be/PLi5xXP_gSY</li>
+                <li id="alfas"></li>
+            </ul>
+            <ul>
+                <li>3. Create minimal polynomials, then make LCM (lowest common multiple) </li>
+                <li id="alfasPolyRoot"></li>
+            </ul>
+            <ul>
+                <li>4. Create minimal polynomials in polynomial notations</li>
+                <li id="polyMinimal"></li>
+            </ul>
+            <ul>
+                <li>5. After multiple 33 mini polynomials We get our code generator $G(x)$</li>
+                <li>Next You have to multiple $$F(x) = x^{511-k} * M(x), \text{  k is degree of G(x) }$$</li>
+                <li>Then make: $$Z(x) = \frac{F(x) * M(x)}{G(x)}$$ </li>
+                <li>Get Remainder from $Z(x)$ and add to $F(x)$</li>
+                <li>Now we have enocded message $V(x)$!</li>
+                <li class="binary">11011010010100100011100011110000001000110110000110000101111111110000010111110000000001010100011011011101001101100010000100011100110011000110000011110100111011111111011000111011100110101111010100011010100100101111110100111110101110001000110011111011110100100011000011001110111000101100000101100011100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000<span style="color: green;">10000011110000110010111100101101001110111111011101000001110111100000110101111011111100100111101011010011100101</span></li>
+            </ul>
+        </div>
+        <div class="section-text">
+            <h2>Decoding</h2>
+            <ul>
+                <li>To decoding our message you must divide our message by code generator $$S(x) = \frac{V(x)}{G(x)}$$</li>
+                <li>If syndrom is 0 just cut message from $V(x)$ The green part!</li>
+                <li class="binary"><br>10000011110000110010111100101101001110111111011101000001110111100000110101111011111100100111101011010011100101</li>
+                <li><br>What if... our message has been destroyed?!</li>
+                <li>We have errors on positions $$500,499,498,497,496,495,494,1,2,3,4,5,6,7,8,9,10,11,12,13,14,300$$</li>
+                <li class="binary">1<b>01001011010110</b>000111000111100000010001101100001100001011111111100000101111100000000010101000110110111010011011000100001000111001100110001100000111101001110111111110110001110111001101011110101000110101001001011111101001111101011100010001100111110111101001000110000110011101110001011000001011000111000<b>1</b>0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000111100001100101111001011010011101111110111010000011101111000001101011110111111001001111<b>1010010</b>0011100101</li>
+                <li>The game is starting! Our syndorm: $$ \text{S(x) != 0}$$</li>
+                <li class="binary">011101010000001001101010001101011100100100001101001110111110001001101101110101001101111100111010001110001000011111001001001001100010111110010000011110110110011001101011000011001010110010101100101110101011111100100001011111111110110101000111110100011001110011000100110010111010011001101101100100001</li>
+                <li>Now we have to create matrix of syndroms</li>
+                <li>
+                $$ \text{S = }
+                \left[\begin{array}{ccccc|c}
+                            S_1&S_2&S_3&\cdots &S_{n} &S_{n+1}\\ 
+                            S_2&S_3&S_4&\cdots &S_{n+1} &S_{n+2}\\
+                            S_3&S_4&S_5&\cdots &S_{n+2} &S_{n+3} \\
+                            \vdots&&&\ddots&\\
+                            S_{n}&S_{n+1}&S_{n+2}&\cdots &S_{2n-1} &S_{2n}\\
+                    \end{array}\right]             
+                $$  
+                </li>
+                <li>Now we must calculate $$det(S_{n*n}),\text{ where n = 33}$$ if it is equals 0, then we must calculate another determinat of matrix $$det(S_{n-1*n-1})$$ We calculate detarminat as long as we get somthing other than 0</li>
+                <li>If determinat is not equal 0, then we have system of linear equations. We are at home!</li>
+                <li>Now our matrix of Syndroms has $$ rank(S) = 22 $$</li>
+                <li>We solve the case with Gauss-Jordan method. Our solution is coefficients of localization errors function.</li>
+                <li>Next we are searching for roots of polynomian function - localization function</li>
+                <li>Done! We have localization of our errors and corrected vector $V(x)$</li>
+                $$M(x)=\text{ Aperion w kodzie }$$
+                <li>No algorithm can correct human errors. The message should be "<b>Apeiron w kodzie</b>"</li>
+                <li>Happy coding! :)</li>
+            </ul>
+        </div>
+
+        <div class="section-text">
+            <h2>Used algorithms</h2>
+            <br>
+            <ul>
+                <li>- Binary Gauss-Jordan Elimination</li>
+                <li>- Gauss-Jordan Elimination Polynomials in Galois field</li>
+                <li>- Detrminant of Matrix n x n</li>
+                <li>- Zech's logarithm</li>
+                <li>- Adding polynomials </li>
+                <li>- Multiplication polynomials</li>
+                <li>- Dividing polynomials</li>
+                <li>- Peterson–Gorenstein–Zierler decoder</li>
+                <li>- Chien search</li>
+                <li>- Cryptographic PRNGs (finding primitive polynomials)</li>
+            </ul>
+
+            <p>It's possible to changing Galois Field $$\text{from GF(2^4) to GF(2^14)}$$</p>
+            <p>Time Encoding 0.005s</p>
+            <p>Time Decoding 0.007s</p>
+            <p>Time for finding primitive polynomial for $GF(2^9)$: 0.040s</p>
+            <br>
+            Code: It's JavaScript :) <br>
+            Github: https://github.com/najwer23/bch-code-js
+        </div>
     </main>
 </body>
 </html>

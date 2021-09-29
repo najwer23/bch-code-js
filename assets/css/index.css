@@ -12,6 +12,32 @@ body {
     font-size: 1.2rem;
 }
 
+.section-text {
+    width: 70%;
+    margin: 20px;
+}
+
+.binary {
+    width: 300px;
+    word-wrap: break-word;
+}
+
+ul {
+    margin-bottom: 20px;
+}
+
+ul li {
+    margin-bottom: 10px;
+}
+
+#alfas, #alfasPolyRoot, #polyMinimal{
+    font-size: 17px;
+}
+
+.credits {
+    font-size: 9px;
+    font-style: italic;
+}
 @media only screen and (max-width: 1400px) {
 
 }
